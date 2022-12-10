@@ -59,3 +59,15 @@ void AC::setup(){  //セットアップ
 
   dir_target = event.orientation.x;  //正面方向決定
 }
+
+
+
+
+void AC::setup_2(){
+  bno.getEvent(&event);
+
+   if(event.orientation.x > 180){
+    event.orientation.x -= 360;  //方向を0~360から-180~180に変換
+  }
+  dir_target = event.orientation.x;
+}

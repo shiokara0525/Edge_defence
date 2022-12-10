@@ -13,6 +13,7 @@ public:
   int flag = 0;  //モーターが突然反転しないようにするやつ
   void print();  //姿勢制御関連のやつを表示
   void setup();  //姿勢制御のセットアップ
+  void setup_2();
 
 private:
   double nowTime = 0;  //関数で見た時の時間

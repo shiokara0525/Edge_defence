@@ -15,6 +15,7 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
   double Bfar_y = 0; //ボールの距離のy成分
 
   double Bfar_y_all = 0;
+  double Bfar_x_all = 0;
   int low_cou = 0;    //一回ボールの値を集計して値がch_num以下だったセンサーの数
   double low_all = 0; //最新100回のボールの値を集計して値がch_num以下だったセンサーの数
 
@@ -40,11 +41,13 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
 
   low_acc[cou % MAX] = low_cou;  //最新の値を配列に入れる(リングバッファ使ってる)
   far_y_acc[cou % MAX] = Bfar_y;
+  far_x_acc[cou % MAX] = Bfar_x;
   cou++;  //この関数の呼び出し回数をカウント
 
   for(int i = 0; i < MAX; i++){
     low_all += low_acc[i];  //値がsen_lowest以下だったセンサーの数を合計
     Bfar_y_all += far_y_acc[i]; 
+    Bfar_x_all += far_x_acc[i];
   }
 
   Bfar = low_all / (cou < MAX ? cou : MAX) - 2;  //ボールの距離を計算
@@ -52,7 +55,7 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
 
   ang = Bang;
   far = Bfar;
-  far_x = Bfar_x;
+  far_x = Bfar_x_all / (MAX * 100);
   far_y = Bfar_y_all / (MAX * 100);
 }
 
@@ -66,6 +69,8 @@ void Ball::print(){  //ボールの位置を表示
   Serial.print(ang);
   Serial.print(" ボールの横軸での距離 : ");
   Serial.print(far_y);
+  Serial.print(" ボールの縦軸での距離 : ");
+  Serial.print(far_x);
 }
 
 

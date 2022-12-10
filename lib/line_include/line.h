@@ -25,6 +25,7 @@ public:
 
     const float kp = 100;
     const float kd = 10;
+    const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
 
 private:
     const int LINE_1 = 23; //ラインセンサIC1の出力を読み取るためのピン
@@ -33,7 +34,6 @@ private:
     const int LINE_A = 26; //ラインセンサのマルチプレクサを制御するためのピンA
     const int LINE_B = 25; //ラインセンサのマルチプレクサを制御するためのピンB
     const int LINE_C = 24; //ラインセンサのマルチプレクサを制御するためのピンC
-    const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
 
     const int Lselect[3] = {LINE_A, LINE_B, LINE_C}; //ラインセンサのマルチプレクサを制御するためのピンを配列に格納
     const int Lread[3] = {LINE_1, LINE_2, LINE_3}; //ラインセンサICの出力を読み取るためのピンを配列に格納
