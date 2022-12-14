@@ -80,6 +80,7 @@ void loop(){
   int Line_flag;
 
   if(A == 10){  //センサーの値取得したりステートの分岐したりするとこ
+
     AC_val = ac.getAC_val();
     Line_flag = line.getLINE_Vec();
     ball.getBallposition();
@@ -89,35 +90,54 @@ void loop(){
     else{  //ライン踏んでなかったら
       A = 30;  //がんばってラインに戻るとこ
     }
+
   }
   if(A == 20){  //ラインの上動くよ
-    if(40 < abs(line.Lvec_Dir) && abs(line.Lvec_Dir) < 140){  //ラインの曲がってるとこか縦の部分にいたら
-      A_line = 1;
-      if(A_line != B_line){
-        B_line = A_line;
-      }
-      line_kkp = line.LP_Y * line.kp * 1;
-      ball_kkp = ball.far_x * ball.kp * 1;
-      moter(ball_kkp,line_kkp,AC_val);  //横軸がライントレース,縦軸がボールの動き
-    }
-    else{  //まっすぐのところにいたら
+
+    if(abs(line.Lvec_Dir) < 30){  //まっすぐのところにいたら
       A_line = 0;
       if(A_line != B_line){
         B_line = A_line;
       }
-      line_kkp = line.LP_X * line.kp * -1;
-      ball_kkp = ball.far_y * ball.kp * -1;
+      line_kkp = -line.LP_X;
       moter(line_kkp,ball_kkp,AC_val);  //縦軸がライントレース,横軸がボールの動き
+    }
+    else if(75 < abs(line.Lvec_Dir) && abs(line.Lvec_Dir) < 105){  //縦のところにいたら
+      A_line = 1;
+      if(A_line != B_line){
+        B_line = A_line;
+      }
+      line_kkp = -line.LP_Y;
+      moter(ball.PD_val_y,line_kkp,AC_val);
+    }
+    else{  //ラインの曲がってるとこにいたら
+      A_line = 2;
+      if(A_line != B_line){
+        B_line = A_line;
+      }
+      line_kkp = -line.LP_X;
+      moter(ball.PD_val_y * 0.3,line_kkp,AC_val);  //横軸がライントレース,縦軸がボールの動き(だいぶ出力弱め)
     }
     Ldir_last = line.Lvec_Dir;  //最新のラインの角度を取得
     A = 40;
+
   }
   if(A == 30){
-    if(0 < Ldir_last){  //最後に踏んだラインが右方向だったら
-      moter(0,-80,AC_val);  //左方向に進む
+    if(B_line == 0){
+      if(abs(Ldir_last) < 90){
+        moter(-80,0,AC_val);
+      }
+      else{
+        moter(80,0,AC_val);
+      }
     }
     else{
-      moter(0,80,AC_val);  //右方向に進む
+      if(0 < Ldir_last){  //最後に踏んだラインが右方向だったら
+        moter(0,-80,AC_val);  //左方向に進む
+      }
+      else{
+        moter(0,80,AC_val);  //右方向に進む
+      }
     }
     A = 40;
   }  

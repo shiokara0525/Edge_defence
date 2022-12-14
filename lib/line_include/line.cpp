@@ -158,8 +158,8 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
       Lvec_Y_move = Lvec_Y - Lvec_Y_old; //ラインの移動ベクトルを求める
       Lvec_Dir_move = atan2(Lvec_Y_move, Lvec_X_move) * 180.0 / PI; //ラインのベクトルの角度を求める
       Lvec_Long_move = sqrt(pow(abs(Lvec_X_move),2) + pow(abs(Lvec_Y_move),2)); //ラインのベクトルの長さを求める
-      LP_X = Lvec_X_target - Lvec_X; //ラインのX成分の偏差を求める
-      LP_Y = Lvec_Y_target - Lvec_Y; //ラインのY成分の偏差を求める
+      LP_X = (Lvec_X_target - Lvec_X) * kp; //ラインのX成分の偏差を求める
+      LP_Y = (Lvec_Y_target - Lvec_Y) * kp; //ラインのY成分の偏差を求める
       LINE_on = 0; //ラインがロボットの下になかったとする（ラインの移動ベクトルを求めるときに使う）
       return 1; //ラインがロボットの上にはないがラインが移動していたので、ラインの処理をしてほしいからラインがあると返す
     }
@@ -169,8 +169,8 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
     return 0; //関数から抜ける
   };
 
-  LP_X = Lvec_X_target - Lvec_X; //ラインのX成分の偏差を求める
-  LP_Y = Lvec_Y_target - Lvec_Y; //ラインのY成分の偏差を求める
+  LP_X = Lvec_X_target - Lvec_X * kp; //ラインのX成分の偏差を求める
+  LP_Y = Lvec_Y_target - Lvec_Y * kp; //ラインのY成分の偏差を求める
 
   if(LINE_on == 0) //初めてラインを発見したら、ラインの最大のベクトルを記録する
   {
