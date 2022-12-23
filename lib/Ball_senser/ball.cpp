@@ -55,15 +55,15 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
 
   ang = Bang;
   far = Bfar;
-  
+
   far_x = Bfar_x_all / (MAX * 100);
   far_y = Bfar_y_all / (MAX * 100);
 
-  far_difference_x = far_x;
-  far_difference_y = far_y;
+  far_difference_x = -far_x;
+  far_difference_y = -far_y;
 
-  PD_val_x = -far_difference_x * kp + -(far_difference_x - far_difference_x_old) / (millis() - time_old) * kd;
-  PD_val_y = -far_difference_y * kp + -(far_difference_y - far_difference_y_old) / (millis() - time_old) * kd;
+  PD_val_x = far_difference_x * kp + -(far_difference_x - far_difference_x_old) * kd;
+  PD_val_y = far_difference_y * kp + -(far_difference_y - far_difference_y_old) * kd;
 }
 
 
@@ -78,6 +78,10 @@ void Ball::print(){  //ボールの位置を表示
   Serial.print(far_y);
   Serial.print(" ボールの縦軸での距離 : ");
   Serial.print(far_x);
+  Serial.print(" PD_val_x : ");
+  Serial.print(PD_val_x);
+  Serial.print(" PD_val_y : ");
+  Serial.print(PD_val_y);
 }
 
 

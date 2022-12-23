@@ -23,7 +23,7 @@ public:
 
     int LINE_on; //ラインがロボットの下になかったら0,あったら1にする
 
-    const float kp = 100;
+    const float kp = 30;
     const float kd = 10;
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
 

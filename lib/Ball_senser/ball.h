@@ -30,8 +30,8 @@ private:
   double far_difference_y;
   double far_difference_y_old;
   double time_old = 0;
-  const float kp = 25;
-  const float kd = 30;
+  const float kp = 15;
+  const float kd = 5;
   
   const int ch_num = 1000; //センサーの値取る回数
   const int sen_lowest = 200; //センサーがボールを見てないと判断する値

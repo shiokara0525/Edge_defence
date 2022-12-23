@@ -17,7 +17,7 @@ double AC::getAC_val(){  //姿勢制御の値返す関数
   }
 
   kkp = -dir;  //比例制御の値を計算
-  kkd = (dir - dir_old) / (nowTime - time_old);  //微分制御の値を計算
+  kkd = -(dir - dir_old) / (nowTime - time_old);  //微分制御の値を計算
   
   val = kkp * kp + kkd * kd;  //最終的に返す値を計算
 
