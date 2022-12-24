@@ -22,8 +22,9 @@ public:
     double LD_Y; //ラインのY成分のDゲイン
 
     int LINE_on; //ラインがロボットの下になかったら0,あったら1にする
+    double Lvec_X_target = 0.7; //ラインの目標ベクトルのX座標（ゴールキーパーの時で、PD制御で使う）
 
-    const float kp = 30;
+    const float kp = 20;
     const float kd = 10;
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
 
@@ -48,7 +49,7 @@ private:
     double LINE_Y[27]; //ラインセンサのY座標
     double Lvec_X_old = 0; //ラインベクトルの初期値を記録する
     double Lvec_Y_old = 0; //ラインベクトルの初期値を記録する
-    double Lvec_X_target = 0; //ラインの目標ベクトルのX座標（ゴールキーパーの時で、PD制御で使う）
+    
     double Lvec_Y_target = 0; //ラインの目標ベクトルのY座標（ゴールキーパーの時で、PD制御で使う）
     
     timer timer1; //タイマーの宣言

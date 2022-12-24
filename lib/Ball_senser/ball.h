@@ -30,7 +30,7 @@ private:
   double far_difference_y;
   double far_difference_y_old;
   double time_old = 0;
-  const float kp = 15;
+  const float kp = 20;
   const float kd = 5;
   
   const int ch_num = 1000; //センサーの値取る回数

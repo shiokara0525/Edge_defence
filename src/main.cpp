@@ -27,6 +27,11 @@ double mCos[4] = {1,-1,-1,1};
 
 int A = 0;
 
+int line_onoff_A = 0;
+int line_onoff_B = 999;
+
+int K = 0;
+
 int A_line = 0;
 int B_line = 999;
 
@@ -100,10 +105,30 @@ void loop(){
   }
 
   if(A == 20){  //ラインの上動くよ
+    line_onoff_A = 1;
+    if(line_onoff_A != line_onoff_B){
+      line_onoff_B = line_onoff_A;
+      if(70 < abs(line.Lvec_Dir + ac.dir) && 100 < abs(line.Lvec_Dir + ac.dir)){
+        K = 1;
+      }
+    }
+
+    while(K == 1){
+      line.getLINE_Vec();
+      AC_val = ac.getAC_val();
+      moter(100,line.LP_Y,AC_val);
+      if(70 < abs(line.Lvec_Dir + ac.dir) && 100 < abs(line.Lvec_Dir + ac.dir)){
+      }
+      else{
+        K = 0;
+      }
+    }
+
     if(abs(line.Lvec_Dir + ac.dir) < 30 || 150 < abs(line.Lvec_Dir + ac.dir)){  //まっすぐのところにいたら
       A_line = 1;
       if(A_line != B_line){
         B_line = A_line;
+        line.Lvec_X_target = 0.7;
       }
       line_kkp = -line.LP_X;
       moter(line_kkp,ball.PD_val_y,AC_val);  //縦軸がライントレース,横軸がボールの動き
@@ -117,75 +142,22 @@ void loop(){
     }
 
     else{  //ラインの曲がってるとこにいたら
-      A_line = 2;
+      A_line = 3;
       if(A_line != B_line){
         B_line = A_line;
-        Serial.print(" 曲がってるときのフラグ : ");
-        Serial.print(go_flag);
-
-        if(0 < ball.ang){
-          go_flag = 2;
-        }
-        else{
-          go_flag = 1;
-        }
+        line.Lvec_X_target = -0.5;
       }
-
-      if(go_flag = 3 || go_flag == 4){
-        moter(line_kkp,ball.PD_val_y,AC_val);  //縦軸がライントレース,横軸がボールの動き
-        if(go_flag == 3){
-          if(0 < ball.ang){
-            go_flag = 1;
-          }
-        }
-        else if(go_flag == 4){
-          if(ball.ang < 0){
-            go_flag = 2;
-          }
-        }
-      }
-
-      while(go_flag == 1 || go_flag == 2){
-        Line_flag = line.getLINE_Vec();
-        ball.getBallposition();
-        
-        if(go_flag == 1){
-          if(0 < ball.ang){
-            moter_0();
-            Serial.print(" 右にボールあるよ ");
-          }
-          else{
-            go_flag = 3;
-          }
-        }
-        else if(go_flag == 2){
-          if(ball.ang < 0){
-            moter_0();
-            Serial.print(" 左にボールあるよ ");
-          }
-          else{
-            go_flag = 4;
-          }
-        }
-
-        if(Line_flag == 0){
-          A = 30;
-          break;
-        }
-        ball.print();
-        Serial.println("");
-      }
+      moter(line_kkp,ball.PD_val_y * 0.5,AC_val);  //縦軸がライントレース,横軸がボールの動き
     }
     Ldir_last = line.Lvec_Dir;  //最新のラインの角度を取得
     A = 40;
   }
 
   if(A == 30){
-    A_line = 0;
-    if(A_line != B_line){
-      B_line = A_line;
+    line_onoff_A = 1;
+    if(line_onoff_A != line_onoff_B){
+      line_onoff_B = line_onoff_A;
     }
-
     if(Ldir_last < 0){
       Serial.print("出たよ(右に) ");
       moter(0,100,AC_val);

@@ -28,7 +28,7 @@ private:
 
   
   const float kp = 3;  //比例制御の比例定数
-  const float kd = 10;  //微分制御の定数
+  const float kd = 2;  //微分制御の定数
 
   sensors_event_t event;  //ジャイロのいろんな値入れるやつ
   Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
