@@ -24,7 +24,7 @@ public:
     int LINE_on; //ラインがロボットの下になかったら0,あったら1にする
     double Lvec_X_target = 0.7; //ラインの目標ベクトルのX座標（ゴールキーパーの時で、PD制御で使う）
 
-    const float kp = 20;
+    const float kp = 15;
     const float kd = 10;
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
 
@@ -42,7 +42,7 @@ private:
 
     double Lrad; //ラインの角度のラジアン
 
-    int LINE_Level = 700; //ラインの閾値
+    int LINE_Level = 600; //ラインの閾値
 
     double Lsencer_Dir[24]; //ラインセンサの角度
     double LINE_X[27]; //ラインセンサのX座標

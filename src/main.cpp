@@ -81,17 +81,21 @@ void setup(){
     }
   }
   Serial.begin(9600);
+  if(2 <= A){
+    ball.getBallposition();
+  }
 }
 
 
+
+
 void loop(){
-  double AC_val;
+  double AC_val = 100;
   double line_kkp;
   int Line_flag;
   
 
   if(A == 10){  //センサーの値取得したりステートの分岐したりするとこ
-
     AC_val = ac.getAC_val();
     Line_flag = line.getLINE_Vec();
     ball.getBallposition();
@@ -101,37 +105,22 @@ void loop(){
     else{  //ライン踏んでなかったら
       A = 30;  //がんばってラインに戻るとこ
     }
-
   }
 
   if(A == 20){  //ラインの上動くよ
     line_onoff_A = 1;
     if(line_onoff_A != line_onoff_B){
       line_onoff_B = line_onoff_A;
-      if(70 < abs(line.Lvec_Dir + ac.dir) && 100 < abs(line.Lvec_Dir + ac.dir)){
-        K = 1;
-      }
-    }
-
-    while(K == 1){
-      line.getLINE_Vec();
-      AC_val = ac.getAC_val();
-      moter(100,line.LP_Y,AC_val);
-      if(70 < abs(line.Lvec_Dir + ac.dir) && 100 < abs(line.Lvec_Dir + ac.dir)){
-      }
-      else{
-        K = 0;
-      }
     }
 
     if(abs(line.Lvec_Dir + ac.dir) < 30 || 150 < abs(line.Lvec_Dir + ac.dir)){  //まっすぐのところにいたら
       A_line = 1;
       if(A_line != B_line){
         B_line = A_line;
-        line.Lvec_X_target = 0.7;
+        line.Lvec_X_target = 0.3;
       }
       line_kkp = -line.LP_X;
-      moter(line_kkp,ball.PD_val_y,AC_val);  //縦軸がライントレース,横軸がボールの動き
+      moter(line_kkp,-ball.PD_val_y,AC_val);  //縦軸がライントレース,横軸がボールの動き
       Serial.print("ラインの上だよ ");
       if(ball.ang < 0){
         go_LR = 0;
@@ -145,9 +134,9 @@ void loop(){
       A_line = 3;
       if(A_line != B_line){
         B_line = A_line;
-        line.Lvec_X_target = -0.5;
+        line.Lvec_X_target = -0.4;
       }
-      moter(line_kkp,ball.PD_val_y * 0.5,AC_val);  //縦軸がライントレース,横軸がボールの動き
+      moter(30,-ball.PD_val_y * 0.5,AC_val);  //縦軸がライントレース,横軸がボールの動き
     }
     Ldir_last = line.Lvec_Dir;  //最新のラインの角度を取得
     A = 40;
@@ -160,26 +149,31 @@ void loop(){
     }
     if(Ldir_last < 0){
       Serial.print("出たよ(右に) ");
-      moter(0,100,AC_val);
+      if(abs(Ldir_last) < 10){
+        moter(20,-100,AC_val);
+      }
+      else{
+        moter(-20,-100,AC_val);
+      }
     }
     else{
       Serial.print("出たよ(左に) ");
-      moter(0,-100,AC_val);
+      if(abs(Ldir_last) < 10){
+        moter(20,100,AC_val);
+      }
+      else{
+        moter(-20,100,AC_val);
+      }
     }
     A = 40;
   }
 
-  if(A == 40){  //最終的に処理するとこ(モーターとかも)
+  if(A == 40){  //最終的に処理するとこ
     A = 10;
-    ball.print();
-    Serial.print(" 今いるステート : ");
-    Serial.print(A_line);
-    Serial.println("");
 
     if(digitalRead(Tact_Switch) == LOW){
       A = 50; //スイッチから手が離されるのを待つ
     }
-    
   }
   if(A == 50){
     if(digitalRead(Tact_Switch) == HIGH){
@@ -255,38 +249,5 @@ void moter_0(){
   for(int i = 0; i < 4; i++){
     digitalWrite(pah[i],LOW);
     analogWrite(ena[i],0);
-  }
-}
-
-
-
-
-void moter_back(double ang,double val){
-  double goval_x = cos(radians(ang));
-  double goval_y = sin(radians(ang));
-  double Mval[4] = {0,0,0,0};
-  double g = 0;
-  int val_max = Val_max;
-
-  val_max -= val;
-
-  for(int i = 0; i < 4; i++){
-    Mval[i] = -mSin[i] * goval_x + mCos[i] * goval_y; //モーターの回転速度を計算(行列式で管理)
-
-    if(g < Mval[i]){
-      g = Mval[i];
-    }
-  }
-
-  for(int i = 0; i < 4; i++){
-    Mval[i] = Mval[i] / g * val_max + val;
-    if(Mval[i] > 0){            //モーターの回転方向が正の時
-      digitalWrite(pah[i] , LOW);    //モーターの回転方向を正にする
-      analogWrite(ena[i] , Mval[i]); //モーターの回転速度を設定
-    }
-    else{  //モーターの回転方向が負の時
-      digitalWrite(pah[i] , HIGH);     //モーターの回転方向を負にする
-      analogWrite(ena[i] , -Mval[i]);  //モーターの回転速度を設定
-    }
   }
 }

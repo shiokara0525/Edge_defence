@@ -62,8 +62,8 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
   far_difference_x = -far_x;
   far_difference_y = -far_y;
 
-  PD_val_x = far_difference_x * kp + -(far_difference_x - far_difference_x_old) * kd;
-  PD_val_y = far_difference_y * kp + -(far_difference_y - far_difference_y_old) * kd;
+  PD_val_x = (far_difference_x * kp + -(far_difference_x - far_difference_x_old) * kd) * far;
+  PD_val_y = (far_difference_y * kp + -(far_difference_y - far_difference_y_old) * kd) * far;
 }
 
 
