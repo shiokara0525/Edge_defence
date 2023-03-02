@@ -148,7 +148,6 @@ void loop(){
       line_onoff_B = line_onoff_A;
     }
     if(Ldir_last < 0){
-      Serial.print("出たよ(右に) ");
       if(abs(Ldir_last) < 10){
         moter(20,-100,AC_val);
       }
@@ -157,7 +156,6 @@ void loop(){
       }
     }
     else{
-      Serial.print("出たよ(左に) ");
       if(abs(Ldir_last) < 10){
         moter(20,100,AC_val);
       }
