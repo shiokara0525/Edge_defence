@@ -6,7 +6,9 @@
 #define pi 3.1415926535897932384
 
 
-void Ball::getBallposition(){  //ボールの位置を極座標系で取得
+int Ball::getBallposition(){  //ボールの位置を極座標系で取得
+  double Bfar_y_all = 0;
+  double Bfar_x_all = 0;
   double Bfar = 0;  //グローバル変数に戻す前の変数(直接代入するのはは何となく不安)
   double Bang = 0;  //グローバル変数に戻す前の変数
   int Bval[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; //ボールの値
@@ -14,13 +16,11 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
   double Bfar_x = 0; //ボールの距離のx成分
   double Bfar_y = 0; //ボールの距離のy成分
 
-  double Bfar_y_all = 0;
-  double Bfar_x_all = 0;
   int low_cou = 0;    //一回ボールの値を集計して値がch_num以下だったセンサーの数
   double low_all = 0; //最新100回のボールの値を集計して値がch_num以下だったセンサーの数
 
-
-  for(int ch_cou = 0; ch_cou < ch_num; ch_cou++){   //ch_num回センサーの値を取得
+  timer_ball.reset();
+  while(timer_ball.read_us() < 833){
     for(int sen_num = 0; sen_num < 16; sen_num++){  //16個のセンサーの値を取得
 
       if(digitalReadFast(ball_sen[sen_num]) == 0){
@@ -50,20 +50,19 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
     Bfar_x_all += far_x_acc[i];
   }
 
-  Bfar = low_all / (cou < MAX ? cou : MAX) - 2;  //ボールの距離を計算
-  Bang = atan2(Bfar_y,Bfar_x) * 180 / pi;    //ボールの角度を計算(atan2はラジアンで返すので角度に変換)  
+  Bang = degrees(atan2(Bfar_y,Bfar_x));    //ボールの角度を計算(atan2はラジアンで返すので角度に変換)  
 
   ang = Bang;
+  far_x = Bfar_x_all * 0.005;
+  far_y = Bfar_y_all * 0.005;
+  Bfar = sqrt(pow(far_x,2.0) + pow(far_y,2.0)) - 160;
   far = Bfar;
-
-  far_x = Bfar_x_all / (MAX * 100);
-  far_y = Bfar_y_all / (MAX * 100);
-
-  far_difference_x = -far_x;
-  far_difference_y = -far_y;
-
-  PD_val_x = (far_difference_x * kp + -(far_difference_x - far_difference_x_old) * kd) * far;
-  PD_val_y = (far_difference_y * kp + -(far_difference_y - far_difference_y_old) * kd) * far;
+  if(far_x == 0 && far_y == 0){  //ボールを見失ったとき止まっとく
+    return 0;
+  }
+  else{  //ボールを見てたら返り値
+    return 1;
+  }
 }
 
 
@@ -72,16 +71,12 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
 void Ball::print(){  //ボールの位置を表示
   Serial.print(" ボールの距離 : ");
   Serial.print(far);
+  // Serial.print(" ボールの距離のx成分 : ");
+  // Serial.print(far_x);
+  // Serial.print(" (y) : ");
+  // Serial.print(far_y);
   Serial.print(" ボールの角度 : ");
   Serial.print(ang);
-  Serial.print(" ボールの横軸での距離 : ");
-  Serial.print(far_y);
-  Serial.print(" ボールの縦軸での距離 : ");
-  Serial.print(far_x);
-  Serial.print(" PD_val_x : ");
-  Serial.print(PD_val_x);
-  Serial.print(" PD_val_y : ");
-  Serial.print(PD_val_y);
 }
 
 

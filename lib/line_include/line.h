@@ -27,6 +27,7 @@ public:
     const float kp = 15;
     const float kd = 10;
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
+    int Lrange_num;
 
 private:
     const int LINE_1 = 23; //ラインセンサIC1の出力を読み取るためのピン
@@ -42,7 +43,7 @@ private:
 
     double Lrad; //ラインの角度のラジアン
 
-    int LINE_Level = 600; //ラインの閾値
+    int LINE_Level = 755; //ラインの閾値
 
     double Lsencer_Dir[24]; //ラインセンサの角度
     double LINE_X[27]; //ラインセンサのX座標
