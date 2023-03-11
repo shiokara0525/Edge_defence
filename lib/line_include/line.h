@@ -17,6 +17,8 @@ public:
     double Lvec_Dir_move; //ラインの和のベクトルの角度の移動量
     double Lvec_Dir; //ラインの和のベクトルの角度
     int Lrange_num = 0; //ラインの範囲を求めるための変数をリセット
+    double Lvec_X = 0; //ラインセンサのX座標の和のベクトル
+    double Lvec_Y = 0; //ラインセンサのY座標の和のベクトル
 
     int LINE_on; //ラインがロボットの下になかったら0,あったら1にする
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン

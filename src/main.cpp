@@ -129,9 +129,14 @@ void loop(){
   if(A == 50){
     Serial.print(" 進む角度 : ");
     Serial.print(goang);
+    line.print();
     Serial.println();
-    moter(goang,100,AC_val,0);
+    moter(goang,abs(ball.ang - goang),AC_val,5);
     A = 10;
+
+    if(digitalReadFast(Tact_Switch) == LOW){
+      Switch(2);
+    }
   }
 }
 
@@ -173,8 +178,7 @@ void moter(double ang,int val,double ac_val,int go_flag){  //モーター制御�
       Mval[i] = -mSin[i] * mval_x + mCos[i] * back_val;
     }
     else if(go_flag == 5){
-      moter_0();
-      return;
+      Mval[i] = -mSin[i] *(mval_x + line.Lvec_X * 0.5)  + mCos[i] *(mval_y + line.Lvec_Y * 0.5);
     }
     
     if(abs(Mval[i]) > g){  //絶対値が一番高い値だったら
