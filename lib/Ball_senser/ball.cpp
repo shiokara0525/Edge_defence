@@ -6,21 +6,22 @@
 #define pi 3.1415926535897932384
 
 
-void Ball::getBallposition(){  //ボールの位置を極座標系で取得
+int Ball::getBallposition(){  //ボールの位置を極座標系で取得
+  double Bfar_y_all = 0;
+  double Bfar_x_all = 0;
   double Bfar = 0;  //グローバル変数に戻す前の変数(直接代入するのはは何となく不安)
   double Bang = 0;  //グローバル変数に戻す前の変数
+  int Bmax_num = 0;
   int Bval[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; //ボールの値
 
   double Bfar_x = 0; //ボールの距離のx成分
   double Bfar_y = 0; //ボールの距離のy成分
 
-  double Bfar_y_all = 0;
-  double Bfar_x_all = 0;
   int low_cou = 0;    //一回ボールの値を集計して値がch_num以下だったセンサーの数
   double low_all = 0; //最新100回のボールの値を集計して値がch_num以下だったセンサーの数
 
-
-  for(int ch_cou = 0; ch_cou < ch_num; ch_cou++){   //ch_num回センサーの値を取得
+  timer_ball.reset();
+  while(timer_ball.read_us() < 833){
     for(int sen_num = 0; sen_num < 16; sen_num++){  //16個のセンサーの値を取得
 
       if(digitalReadFast(ball_sen[sen_num]) == 0){
@@ -29,13 +30,19 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
 
     }
   }
+  int Bval_max = 0;
 
   for(int i = 0; i < 16; i++){   //値を集計するところ
     Bfar_x += Bval[i] * Cos[i];  //ボールの距離のx成分を抽出
     Bfar_y += Bval[i] * Sin[i];  //ボールの距離のy成分を抽出
-
-    if(Bval[i] < sen_lowest){
-      low_cou++;  //値がsen_lowest以下だったセンサーの数をカウント
+    if(Bval_max < Bval[i]){
+      Bval_max = Bval[i];
+    }
+  }
+  Bval_max -= 500;
+  for(int i = 0; i < 16; i++){
+    if(Bval[i] < Bval_max){
+      low_cou++;
     }
   }
 
@@ -50,20 +57,22 @@ void Ball::getBallposition(){  //ボールの位置を極座標系で取得
     Bfar_x_all += far_x_acc[i];
   }
 
-  Bfar = low_all / (cou < MAX ? cou : MAX) - 2;  //ボールの距離を計算
-  Bang = atan2(Bfar_y,Bfar_x) * 180 / pi;    //ボールの角度を計算(atan2はラジアンで返すので角度に変換)  
+  Bang = degrees(atan2(Bfar_y,Bfar_x));    //ボールの角度を計算(atan2はラジアンで返すので角度に変換)  
 
   ang = Bang;
+  far_x = Bfar_x_all * 0.005;
+  far_y = Bfar_y_all * 0.005;
+  Bfar = (2.5 * low_all) - 300;
+  if(Bfar < 40){
+    Bfar = 40;
+  }
   far = Bfar;
-
-  far_x = Bfar_x_all / (MAX * 100);
-  far_y = Bfar_y_all / (MAX * 100);
-
-  far_difference_x = -far_x;
-  far_difference_y = -far_y;
-
-  PD_val_x = (far_difference_x * kp + -(far_difference_x - far_difference_x_old) * kd) * far;
-  PD_val_y = (far_difference_y * kp + -(far_difference_y - far_difference_y_old) * kd) * far;
+  if(far_x == 0 && far_y == 0){  //ボールを見失ったとき止まっとく
+    return 0;
+  }
+  else{  //ボールを見てたら返り値
+    return 1;
+  }
 }
 
 
@@ -74,14 +83,6 @@ void Ball::print(){  //ボールの位置を表示
   Serial.print(far);
   Serial.print(" ボールの角度 : ");
   Serial.print(ang);
-  Serial.print(" ボールの横軸での距離 : ");
-  Serial.print(far_y);
-  Serial.print(" ボールの縦軸での距離 : ");
-  Serial.print(far_x);
-  Serial.print(" PD_val_x : ");
-  Serial.print(PD_val_x);
-  Serial.print(" PD_val_y : ");
-  Serial.print(PD_val_y);
 }
 
 
