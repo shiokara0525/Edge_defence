@@ -4,7 +4,7 @@
 #include<ball.h>
 #include<line.h>
 #include<timer.h>
-
+#include<angle.h>
 
 /*--------------------------------------------------------いろいろ変数----------------------------------------------------------------------*/
 
@@ -18,6 +18,8 @@ int B_line = 999;  //前回踏んでるか踏んでないか
 
 int line_flag = 0;               //最初にどんな風にラインの判定したか記録
 double edge_flag = 0; //ラインの端にいたときにゴールさせる確率を上げるための変数だよ(なんもなかったら0,右の端だったら1,左だったら2)
+
+const int stop_range = 8;
 
 const int Tact_Switch = 15;  //スイッチのピン番号 
 const double pi = 3.1415926535897932384;  //円周率
@@ -36,11 +38,11 @@ const int ena[4] = {0,2,4,28};
 const int pah[4] = {1,3,5,29};
 void moter(double ang,int val,double ac_val,int stop_flag);  //モーター制御関数
 void moter_0();               //モーター止める関数
-double val_max = 125;         //モーターの出力の最大値
-double mSin[] = {1,1,-1,-1};  //行列式のsinの値
-double mCos[] = {1,-1,-1,1};  //行列式のcosの値
+const double val_max = 120;         //モーターの出力の最大値
+const double mSin[] = {1,1,-1,-1};  //行列式のsinの値
+const double mCos[] = {1,-1,-1,1};  //行列式のcosの値
 
-#define moter_max 5              //移動平均で使う配列の大きさ
+#define moter_max 3              //移動平均で使う配列の大きさ
 double val_moter[4][moter_max];  //モーターの値を入れる配列(移動平均を使うために二次元にしてるよ)
 int count_moter = 0;             //移動平均でリングバッファを使うためのカウンターだよ
 
@@ -69,13 +71,14 @@ void setup(){
 void loop(){
   double AC_val = 100;  //姿勢制御の最終的な値を入れるグローバル変数
   double goang = 0;  //進みたい角度
+  int goval = val_max;
   int ball_flag = 0;  //ボールがコート上にあるかないか
-  int Line_flag = 0;
+  int stop_flag = 5;
 
   if(A == 10){  //情報入手
     ball_flag = ball.getBallposition();  //ボールの位置取得
     AC_val = ac.getAC_val();             //姿勢制御の値入手
-    Line_flag = line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
+    line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
     if(ball_flag == 0){  //ボール見てなかったら
       A = 15;  //止まるとこ
     }
@@ -99,6 +102,7 @@ void loop(){
     int go_flag = 0;
     double go_border[3];
     double ball_dir = ball.ang;
+    angle balldir(ball.ang,true);
 
     if(line.Lvec_Dir < 0){
       go_border[0] = line.Lvec_Dir;
@@ -111,11 +115,9 @@ void loop(){
       go_border[2] = line.Lvec_Dir + 180;
     }
 
-    if(ball_dir < go_border[0]){
-      ball_dir += 360;
-    }
+    balldir.to_range(go_border[0],false);
 
-    if(go_border[0] < ball_dir && ball_dir < go_border[1]){
+    if(go_border[0] < balldir.degrees && balldir.degrees < go_border[1]){
       go_flag = 0;
     }
     else{
@@ -124,6 +126,9 @@ void loop(){
 
     double goang_2[2] = {go_border[0] + 90,go_border[1] + 90};
     goang = goang_2[go_flag];
+    if((go_border[0] - stop_range < ball.ang && ball.ang < go_border[0] + stop_range) || (go_border[1] - stop_range < ball.ang && ball.ang < go_border[1] + stop_range)){
+      stop_flag = 999;
+    }
     A = 50;
   }
   if(A == 50){
@@ -131,7 +136,7 @@ void loop(){
     Serial.print(goang);
     line.print();
     Serial.println();
-    moter(goang,abs(ball.ang - goang),AC_val,5);
+    moter(goang,goval,AC_val,stop_flag);
     A = 10;
 
     if(digitalReadFast(Tact_Switch) == LOW){
@@ -150,7 +155,7 @@ void moter(double ang,int val,double ac_val,int go_flag){  //モーター制御�
   double g = 0;                //モーターの最終的に出る最終的な値の比の基準になる値
   double h = 0;
   double Mval[4] = {0,0,0,0};  //モーターの値×4
-  double Mval_n[4] = {0,0,0,0};
+  // double Mval_n[4] = {0,0,0,0};
   double max_val = val;        //モーターの値の上限値
   double mval_x = cos(radians(ang));  //進みたいベクトルのx成分
   double mval_y = sin(radians(ang));  //進みたいベクトルのy成分
@@ -180,6 +185,9 @@ void moter(double ang,int val,double ac_val,int go_flag){  //モーター制御�
     else if(go_flag == 5){
       Mval[i] = -mSin[i] *(mval_x + line.Lvec_X * 0.5)  + mCos[i] *(mval_y + line.Lvec_Y * 0.5);
     }
+    else if(go_flag == 999){
+      Mval[i] = 0;
+    }
     
     if(abs(Mval[i]) > g){  //絶対値が一番高い値だったら
       g = abs(Mval[i]);    //一番大きい値を代入
@@ -188,7 +196,7 @@ void moter(double ang,int val,double ac_val,int go_flag){  //モーター制御�
 
   for(int i = 0; i < 4; i++){  //移動平均求めるゾーンだよ
     Mval[i] /= g;  //モーターの値を制御(常に一番大きい値が1になるようにする)
-    Mval_n[i] = Mval[i];  //モーターの値を保存(ライン踏んでるときはこれ使うよ)
+    // Mval_n[i] = Mval[i];  //モーターの値を保存(ライン踏んでるときはこれ使うよ)
     val_moter[i][(count_moter % moter_max)] = Mval[i];  //移動平均を求めるために値を配列に保存
     double valsum_moter = 0;  //移動平均を求めて、その結果の値を保存する変数
 
@@ -204,12 +212,7 @@ void moter(double ang,int val,double ac_val,int go_flag){  //モーター制御�
   }
 
   for(int i = 0; i < 4; i++){  //モーターの値を計算するところだよ
-    if(go_flag == 0){  //ラインの処理してないとき
-      Mval[i] = Mval[i] / h * max_val + ac_val;  //モーターの値を計算(進みたいベクトルの値と姿勢制御の値を合わせる)
-    }
-    else{  //ラインの処理してるとき
-      Mval[i] = Mval_n[i] / h * max_val + ac_val;  //移動平均無しバージョンでモーターの値を計算するよ
-    }
+    Mval[i] = Mval[i] / h * max_val + ac_val;  //モーターの値を計算(進みたいベクトルの値と姿勢制御の値を合わせる)
 
     if(ac.flag == 1){
       digitalWrite(pah[i],LOW);
