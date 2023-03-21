@@ -22,8 +22,8 @@ void moter_back(double,double);
 
 const int Val_max = 100;
 
-double mSin[4] = {1,1,-1,-1};
-double mCos[4] = {1,-1,-1,1};
+const int stop_range[2]= {7,30};
+double goval_a;
 
 int A = 0;
 
@@ -35,55 +35,24 @@ int K = 0;
 int A_line = 0;
 int B_line = 999;
 
-float Ldir_last;
-int count = 0;
-int go_flag = 0;
-int go_LR = 0;
+/*--------------------------------------------------------------モーター制御---------------------------------------------------------------*/
+
+
+const double val_max = 100;         //モーターの出力の最大値
+
+/*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
 
 
 
 void setup(){
-  for(int i = 0; i < 4; i++){
-    pinMode(ena[i] , OUTPUT);
-    pinMode(pah[i] , OUTPUT);
-  }
-
-  ball.setup();
-
-  while(A != 10){
-    if (A == 0){
-      A = 1; //スイッチが押されるのを待つ
-    }
-    else if(A == 1){
-      if(digitalRead(Tact_Switch) == LOW){
-        A = 2; //スイッチから手が離されるのを待つ
-      }
-    }
-    else if(A == 2){
-      if(digitalRead(Tact_Switch) == HIGH){  //手が離されたらその時点で正面方向決定
-        ac.setup();  //正面方向決定(その他姿勢制御関連のセットアップ)
-        line.setup();  //ラインとかのセットアップ
-        delay(100);
-        A = 3;  //メインプログラムいけるよ
-      }
-    }
-    else if(A == 3){
-      ball.getBallposition();
-      if(digitalRead(Tact_Switch) == LOW){
-        A = 4; //スイッチから手が離されるのを待つ
-      }
-    }
-    else if(A == 4){
-      if(digitalRead(Tact_Switch) == HIGH){
-        A = 10;
-      }
-    }
-  }
-  Serial.begin(9600);
-  if(2 <= A){
-    ball.getBallposition();
-  }
+  Serial.begin(9600);  //シリアルプリントできるよ
+  Wire.begin();  //I2Cできるよ
+  ball.setup();  //ボールとかのセットアップ
+  goval_a = val_max / (stop_range[1] - stop_range[0]);
+  
+  Switch(1);
+  A = 10;
 }
 
 
@@ -142,31 +111,55 @@ void loop(){
     A = 40;
   }
 
-  if(A == 30){
-    line_onoff_A = 1;
-    if(line_onoff_A != line_onoff_B){
-      line_onoff_B = line_onoff_A;
-    }
-    if(Ldir_last < 0){
-      if(abs(Ldir_last) < 10){
-        moter(20,-100,AC_val);
-      }
-      else{
-        moter(-20,-100,AC_val);
-      }
+  if(A == 20){
+    int go_flag = 0;
+    double go_border[2];
+    angle balldir(ball.ang,true);
+
+    if(line.Lvec_Dir < 0){
+      go_border[0] = line.Lvec_Dir;
+      go_border[1] = line.Lvec_Dir + 180;
     }
     else{
-      if(abs(Ldir_last) < 10){
-        moter(20,100,AC_val);
+      go_border[0] = line.Lvec_Dir - 180;
+      go_border[1] = line.Lvec_Dir;
+    }
+
+    balldir.to_range(go_border[0],false);
+
+    if(go_border[0] < balldir.degrees && balldir.degrees < go_border[1]){
+      go_flag = 0;
+    }
+    else{
+      go_flag = 1;
+    }
+
+    go_ang = go_border[go_flag] + 90;
+    go_ang.to_range(180,true);
+
+    for(int i = 0; i < 2; i++){
+      if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){
+        stop_flag = 999;
       }
-      else{
-        moter(-20,100,AC_val);
+      else if(go_border[i] - stop_range[1] < ball.ang && ball.ang < go_border[i] + stop_range[1]){
+        goval = (abs(ball.ang) - stop_range[0]) * goval_a;
       }
     }
-    A = 40;
-  }
+    if(170 < abs(go_ang.degrees)){
+      stop_flag = 999;
+    }
 
-  if(A == 40){  //最終的に処理するとこ
+    A = 50;
+  }
+  if(A == 50){
+    // Serial.print(" 進む角度 : ");
+    // Serial.print(go_ang.degrees);
+    Serial.print(" 進む角度 : ");
+    Serial.print(go_ang.degrees);
+    Serial.print(" 進む速さ : ");
+    Serial.print(goval);
+    Serial.println();
+    MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
     A = 10;
 
     if(digitalRead(Tact_Switch) == LOW){
