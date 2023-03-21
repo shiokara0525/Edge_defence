@@ -16,30 +16,32 @@ void LINE::setup() {
     LINE_Y[i] = sin(Lrad); //ラインセンサのY座標を求める
     Lsencer_Dir[i] = 15.0 * i; //ラインセンサの角度を求める
   }
-  digitalWrite(LINE_light, HIGH); //ラインセンサのLEDを光らせる
+  digitalWrite(LINE_light,HIGH);
 }
 
 
 
 
 int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得する関数
-  int data[24][100]; //ラインセンサの値を格納する二次元配列
+  int LniseF = 50;  //ラインセンサのノイズフィルタを行う回数
+  int Lnone = 0;  //ラインセンサのノイズフィルタリングをするために使う変数
+  int data[24][LniseF]; //ラインセンサの値を格納する二次元配列
   int data_sum[24]; //ラインセンサの値の合計を格納する配列
   int data_ave[24]; //ラインセンサの値の平均を格納する配列
   int Lnum = 0; //ラインセンサの番号
   int detecting = 0; //ラインを検知しているかどうかのフラグをリセット
-  int Lrange_num = 0; //ラインの範囲を求めるための変数をリセット
   int flag = 0; //ラインセンサの角度が0度をまたいでいるのかいないのかを判断するフラグをリセット
   int Lfirst[24]; //ラインセンサの範囲の開始点の番号を記録(配列が24つあるのは、間違って3つ以上の範囲が出てきても、バグが起こらないようにするため)
   int Llast[24]; //ラインセンサの範囲の終了点の番号を記録(配列が24つあるのは、間違って3つ以上の範囲が出てきても、バグが起こらないようにするため)
-  double Lvec_X = 0; //ラインセンサのX座標の和のベクトル
-  double Lvec_Y = 0; //ラインセンサのY座標の和のベクトル
+
   double Lvec_X_move = 0; //ラインベクトルの移動量を記録する
   double Lvec_Y_move = 0; //ラインベクトルの移動量を記録する
   double Lsencer_Dir_ave = 0; //ラインセンサの範囲の角度を出すときのラインセンサの始点と終点の和の平均
   unsigned long Ltime_move = 1000; //ラインの移動量を定期的に計測するための時間の間隔
 
-  for(int j=0; j<100; j++) //ラインセンサを24個読み取るを1セットとし、100セット読み取る
+  Lrange_num = 0;
+
+  for(int j=0; j<LniseF; j++) //ラインセンサを24個読み取るを1セットとし、100セット読み取る
   {
     for(int i=0; i<8; i++)  //8chマルチプレクサ×3なので8回まわす、そして、24個のラインセンサを指定する
     {
@@ -69,12 +71,35 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
 
   for(int i=0; i<24; i++) //24個のラインセンサを指定する
   {
-    for(int j=0; j<100; j++) //ラインセンサを24個読み取るを1セットとし、100セット読み取る
+    for(int j=0; j<LniseF; j++) //ラインセンサを24個読み取るを1セットとし、100セット読み取る
     {
-      data_sum[i] = data_sum[i] + data[i][j]; //ラインセンサの値を合計する
+      // data_sum[i] = data_sum[i] + data[i][j]; //ラインセンサの値を合計する
+
+      if(LINE_Level < data[i][j]) //ラインセンサの値が閾値より大きければ（ライン上にいるとき）
+      {
+        Lnone++; //ラインセンサの上にラインがあるということを数える
+        data_sum[i] = data_sum[i] + data[i][j]; //ラインセンサ(ライン上のとき)の値を合計する
+      }
     }
-    data_ave[i] = data_sum[i] / 100; //ラインセンサの値を平均する
+
+    if(Lnone > LniseF*0.6)  //ラインを調べた60%以上がライン上にいるとき
+    {
+      data_ave[i] = data_sum[i] / Lnone; //ラインセンサの値を平均する
+    }
+    else
+    {
+      data_ave[i] = 0; //ラインセンサの値を0(ライン上にいない)にする
+    }
+    
+    // Serial.print(data_sum[i]);
+    // Serial.print(" ");
+    // Serial.print(Lnone);
+
     data_sum[i] = 0; //合計値をリセット
+    Lnone = 0; //ラインセンサの上にラインがあるということを数えるをリセット(一つのセンサごとに)
+
+    // Serial.print(data_ave[i]); //ラインセンサの値をシリアルモニタに表示
+    // Serial.print(" ");
   }
   data_ave[4] = 0;
   data_ave[8] = 0;
@@ -161,19 +186,14 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
       Lvec_Y_move = Lvec_Y - Lvec_Y_old; //ラインの移動ベクトルを求める
       Lvec_Dir_move = atan2(Lvec_Y_move, Lvec_X_move) * 180.0 / PI; //ラインのベクトルの角度を求める
       Lvec_Long_move = sqrt(pow(abs(Lvec_X_move),2) + pow(abs(Lvec_Y_move),2)); //ラインのベクトルの長さを求める
-      LP_X = (Lvec_X_target - Lvec_X) * kp; //ラインのX成分の偏差を求める
-      LP_Y = (Lvec_Y_target - Lvec_Y) * kp; //ラインのY成分の偏差を求める
       LINE_on = 0; //ラインがロボットの下になかったとする（ラインの移動ベクトルを求めるときに使う）
       return 1; //ラインがロボットの上にはないがラインが移動していたので、ラインの処理をしてほしいからラインがあると返す
     }
     LINE_on = 0; //ラインがロボットの下になかったとする（ラインの移動ベクトルを求めるときに使う）
     Lvec_X_old = 0; //ラインがないので、過去の値をなかったものとする
     Lvec_Y_old = 0; //ラインがないので、過去の値をなかったものとする
-    return 0; //関数から抜ける
+    return 0; //関数から抜ける  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
   };
-
-  LP_X = (Lvec_X_target - Lvec_X) * kp; //ラインのX成分の偏差を求める
-  LP_Y = (Lvec_Y_target - Lvec_Y) * kp; //ラインのY成分の偏差を求める
 
   if(LINE_on == 0) //初めてラインを発見したら、ラインの最大のベクトルを記録する
   {
@@ -190,25 +210,9 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
     Lvec_Y_move = Lvec_Y - Lvec_Y_old; //ラインの移動ベクトルを求める
     Lvec_Dir_move = atan2(Lvec_Y_move, Lvec_X_move) * 180.0 / PI; //ラインのベクトルの角度を求める
     Lvec_Long_move = sqrt(pow(abs(Lvec_X_move),2) + pow(abs(Lvec_Y_move),2)); //ラインのベクトルの長さを求める
-
-    if(LINE_on == 0) //初めてラインを発見したら、ラインの偏差過去の記録は使えないので、Dは0とする
-    {
-      LP_X_old = LP_X; //ラインのX成分の偏差を記録する
-      LP_Y_old = LP_Y; //ラインのY成分の偏差を記録する
-      LD_X = 0; //ラインのX成分の前回偏差との差を0とする
-      LD_Y = 0; //ラインのY成分の前回偏差との差を0とする
-    }
-    else
-    {
-      LD_X = (LP_X_old - LP_X) / Ltime_move; //ラインのX成分の偏差の微分を求める
-      LD_Y = (LP_Y_old - LP_Y) / Ltime_move; //ラインのY成分の偏差の微分を求める
-      LP_X_old = LP_X; //ラインのX成分の偏差を記録する
-      LP_Y_old = LP_Y; //ラインのY成分の偏差を記録する
-    }
-
     timer1.reset();  //もう一度Ltime_moveの時間の計測をする（定期的にラインの移動量を計測するため）
   }
-  Lvec_Dir = atan2(Lvec_Y, Lvec_X) * 180.0 / PI; //ラインのベクトルの角度を求める
+  Lvec_Dir = degrees(atan2(Lvec_Y, Lvec_X)); //ラインのベクトルの角度を求める
   Lvec_Long = sqrt(pow(abs(Lvec_X),2) + pow(abs(Lvec_Y),2)); //ラインのベクトルの長さを求める
 
   LINE_on = 1; //ラインがロボットの下にあったとする（ラインの移動ベクトルを求めるときに使う）
@@ -216,11 +220,87 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
 }
 
 
+int LINE::switchLineflag(float linedir){
+  int line_flag = 0;
+  for(int i = 0; i < 4; i++){  //角度を四つに区分して、それぞれどの区分にいるか判定するよ
+    if(i == 0){  //-45°~45°の区分(ここだけ0°をまたいでいるので特別に処理)
+      if(315 < linedir || linedir < 45){  //-45°~45°にいるとき
+        line_flag = i + 1;  //ラインを前のほうで踏んでると判定する
+      }
+    }
+    else{
+      if(-45 +(i * 90) < linedir && linedir < 45 +(i * 90)){  //それ以外の三つの区分(右、後ろ、左で判定してるよ)
+        line_flag = i + 1;
+      }
+    }
+  }
+  
+  return line_flag;
+}
+
+
+double line_switch(int,double,int);
+
+
+float LINE::decideGoang(float linedir,int line_flag){
+  float goang = 0;
+  
+  for(int i = 0; i < 12; i++){  //角度を12つに区分して、それぞれどの区分にいるか判定する
+
+    if(i == 0){  //-15°~15°の区分(ここだけ0°をまたいでいるので特別に処理)
+      if(345 < linedir || linedir < 15){
+        goang = line_switch(i,linedir,line_flag);  //ラインがロボットの中心を通り越すことがあるからそれも考慮してるよ(関数は下にあるよ)
+      }
+    }
+    else{
+      if(-15 +(i * 30) < linedir && linedir < 15 +(i * 30)){  //時計回りにどの区分にいるか判定してるよ
+        goang = line_switch(i,linedir,line_flag);
+      }
+    }
+  }
+  return goang;
+}
+
+
+double line_switch(int i,double ang,int line_flag){  //ラインを踏みこしてるときの処理とか判定とか書いてあるよ
+  if(i == 11 || i <= 1){
+    if(line_flag == 3){
+      return 0.0;
+    }
+  }
+  else if(2 <= i && i <= 4){
+    if(line_flag == 4){
+      return 90.0;
+    }
+  }
+  else if(5 <= i && i <= 7){
+    if(line_flag == 1){
+      return 180.0;
+    }
+  }
+  else if(8 <= i && i <= 10){
+    if(line_flag == 2){
+      return -90.0;
+    }
+  }
+
+  double goang = (i * 30.0)- 180.0;
+
+  Serial.print(" 踏んだ角度 : ");
+  Serial.print(goang);
+
+  return goang;
+}
+
 
 
 void LINE::print(){
-  Serial.print("角度 : ");
+  Serial.print(" 角度 : ");
   Serial.print(Lvec_Dir); //ラインのベクトルを表示
   Serial.print(" 距離 : ");
   Serial.print(Lvec_Long); //ラインのベクトルを表示
+  Serial.print(" 距離(x) : ");
+  Serial.print(Lvec_X);
+  Serial.print(" (y) : ");
+  Serial.print(Lvec_Y);
 }

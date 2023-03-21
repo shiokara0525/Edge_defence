@@ -1,39 +1,40 @@
 #include<Arduino.h>
+#include<Wire.h>
+#include<ac.h>
 #include<ball.h>
 #include<line.h>
-#include<ac.h>
 #include<timer.h>
+#include<angle.h>
+#include<MA.h>
+#include<moter.h>
+
+/*--------------------------------------------------------いろいろ変数----------------------------------------------------------------------*/
 
 
+int A = 0;  //どのチャプターに移動するかを決める変数
 
-Ball ball;
-LINE line;
-AC ac;
-timer timer_sawa;
+int A_line = 0;  //ライン踏んでるか踏んでないか
+int B_line = 999;  //前回踏んでるか踏んでないか
 
-const int ena[4] = {28,2,0,4};
-const int pah[4] = {29,3,1,5};
-const int Tact_Switch = 15;
-int Mang[4] = {45,135,225,315};  //モーターの角度
+//上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
 
-void moter(double,double,double);
-void moter_0();
-void moter_back(double,double);
-
-const int Val_max = 100;
+int line_flag = 0;               //最初にどんな風にラインの判定したか記録
+double edge_flag = 0; //ラインの端にいたときにゴールさせる確率を上げるための変数だよ(なんもなかったら0,右の端だったら1,左だったら2)
 
 const int stop_range[2]= {7,30};
 double goval_a;
 
-int A = 0;
+const int Tact_Switch = 15;  //スイッチのピン番号 
+const double pi = 3.1415926535897932384;  //円周率
 
-int line_onoff_A = 0;
-int line_onoff_B = 999;
+void Switch(int);
 
-int K = 0;
+Ball ball;  //ボールのオブジェクトだよ(基本的にボールの位置取得は全部ここ)
+AC ac;      //姿勢制御のオブジェクトだよ(基本的に姿勢制御は全部ここ)
+LINE line;  //ラインのオブジェクトだよ(基本的にラインの判定は全部ここ)
+timer Timer;
+moter MOTER;
 
-int A_line = 0;
-int B_line = 999;
 
 /*--------------------------------------------------------------モーター制御---------------------------------------------------------------*/
 
@@ -59,56 +60,33 @@ void setup(){
 
 
 void loop(){
-  double AC_val = 100;
-  double line_kkp;
-  int Line_flag;
-  
+  double AC_val = 100;  //姿勢制御の最終的な値を入れるグローバル変数
+  angle go_ang(0,true);
+  int goval = val_max;
+  int ball_flag = 0;  //ボールがコート上にあるかないか
+  int stop_flag = 5;
 
-  if(A == 10){  //センサーの値取得したりステートの分岐したりするとこ
-    AC_val = ac.getAC_val();
-    Line_flag = line.getLINE_Vec();
-    ball.getBallposition();
-    if(Line_flag == 1){  //ライン踏んでたら
-      A = 20;  //ラインの上動くとこ
+  if(A == 10){  //情報入手
+    ball_flag = ball.getBallposition();  //ボールの位置取得
+    AC_val = ac.getAC_val();             //姿勢制御の値入手
+    line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
+    if(ball_flag == 0){  //ボール見てなかったら
+      A = 15;  //止まるとこ
     }
-    else{  //ライン踏んでなかったら
-      A = 30;  //がんばってラインに戻るとこ
+    else{  //ボール見てたら
+      A = 20;  //進む角度決めるとこ
     }
   }
 
-  if(A == 20){  //ラインの上動くよ
-    line_onoff_A = 1;
-    if(line_onoff_A != line_onoff_B){
-      line_onoff_B = line_onoff_A;
-    }
-
-    if(abs(line.Lvec_Dir + ac.dir) < 30 || 150 < abs(line.Lvec_Dir + ac.dir)){  //まっすぐのところにいたら
-      A_line = 1;
-      if(A_line != B_line){
-        B_line = A_line;
-        line.Lvec_X_target = 0.3;
-      }
-      line_kkp = -line.LP_X;
-      moter(line_kkp,-ball.PD_val_y,AC_val);  //縦軸がライントレース,横軸がボールの動き
-      Serial.print("ラインの上だよ ");
-      if(ball.ang < 0){
-        go_LR = 0;
-      }
-      else{
-        go_LR = 1;
+  if(A == 15){
+    MOTER.moter_0();
+    while(1){
+      ball.getBallposition();
+      if(ball.far_x != 0 || ball.far_y != 0){
+        break;
       }
     }
-
-    else{  //ラインの曲がってるとこにいたら
-      A_line = 3;
-      if(A_line != B_line){
-        B_line = A_line;
-        line.Lvec_X_target = -0.4;
-      }
-      moter(30,-ball.PD_val_y * 0.5,AC_val);  //縦軸がライントレース,横軸がボールの動き
-    }
-    Ldir_last = line.Lvec_Dir;  //最新のラインの角度を取得
-    A = 40;
+    A = 50;
   }
 
   if(A == 20){
@@ -162,83 +140,65 @@ void loop(){
     MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
     A = 10;
 
-    if(digitalRead(Tact_Switch) == LOW){
-      A = 50; //スイッチから手が離されるのを待つ
+    if(digitalReadFast(Tact_Switch) == LOW){
+      Switch(2);
     }
   }
-  if(A == 50){
-    if(digitalRead(Tact_Switch) == HIGH){
-      delay(100);
-      A = 60;
-      for(int i = 0; i < 4; i++){
-        digitalWrite(pah[i],LOW);
-        analogWrite(ena[i],0);
+}
+
+
+/*----------------------------------------------------------------いろいろ関数-----------------------------------------------------------*/
+
+void Switch(int flag){
+  int A = 0;
+  while(1){
+    if(A == 0){
+      if(flag == 2){
+        if(digitalRead(Tact_Switch) == HIGH){
+          delay(100);
+          digitalWrite(line.LINE_light,LOW);  //ラインの光止めるよ
+          MOTER.moter_0();
+          A = 1;
+        }
       }
-      digitalWrite(line.LINE_light,LOW);
+      else{
+        A = 1;
+      }
+    }
+
+    if(A == 1){
+      if(digitalRead(Tact_Switch) == LOW){
+        A = 2;
+      }
+    }
+
+    if(A == 2){
+      if(flag == 1){
+        ball.setup();
+        ac.setup();  //正面方向決定(その他姿勢制御関連のセットアップ)
+        line.setup();  //ラインとかのセットアップ
+      }
+      else{
+        ac.setup_2();  //姿勢制御の値リセットしたよ
+        digitalWrite(line.LINE_light,HIGH);  //ライン付けたよ
+      }
+      
+      if(digitalRead(Tact_Switch) == HIGH){
+        A = 3;  //準備オッケーだよ 
+      }
+    }
+
+    if(A == 3){
+      if(digitalRead(Tact_Switch) == LOW){
+        A = 4;  //スイッチはなされたらいよいよスタートだよ
+      }
+    }
+    
+    if(A == 4){
+      if(digitalRead(Tact_Switch) == HIGH){
+        break;
+      }
     }
   }
-  if(A == 60){
-    if(digitalRead(Tact_Switch) == LOW){
-      A = 70;
-    }
-  }
-  if(A == 70){
-    digitalWrite(line.LINE_light,HIGH);
-    if(digitalRead(Tact_Switch) == HIGH){
-      A = 80;
-      ac.setup_2();
-    }
-  }
-  if(A == 80){
-    if(digitalRead(Tact_Switch) == LOW){
-      A = 90;
-    }
-  }
-  if(A == 90){
-    if(digitalRead(Tact_Switch) == HIGH){
-      A = 10;
-    }
-  }
-
-}
-
-
-
-
-void moter(double val_x,double val_y,double ac_val){  //モーター制御する関数
-  double Mval[4] = {0,0,0,0};
-  double val = Val_max;
-
-  val -= ac_val;
-
-  for(int i = 0; i < 4; i++){
-    Mval[i] = -mSin[i] * val_x + mCos[i] * val_y;
-  }
-
-  for(int i = 0; i < 4; i++){
-    Mval[i] = Mval[i] + ac_val;
-    if(ac.flag == 1){
-      digitalWrite(pah[i],LOW);
-      analogWrite(ena[i],0);
-    }
-    else if(Mval[i] > 0){            //モーターの回転方向が正の時
-      digitalWrite(pah[i] , LOW);    //モーターの回転方向を正にする
-      analogWrite(ena[i] , Mval[i]); //モーターの回転速度を設定
-    }
-    else{  //モーターの回転方向が負の時
-      digitalWrite(pah[i] , HIGH);     //モーターの回転方向を負にする
-      analogWrite(ena[i] , -Mval[i]);  //モーターの回転速度を設定
-    }
-  }  
-}
-
-
-
-
-void moter_0(){
-  Serial.print("止まってるよ");
-  for(int i = 0; i < 4; i++){
-    digitalWrite(pah[i],LOW);
-    analogWrite(ena[i],0);
-  }
+  return;
 }
