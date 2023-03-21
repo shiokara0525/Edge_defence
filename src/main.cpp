@@ -21,7 +21,8 @@ int B_line = 999;  //前回踏んでるか踏んでないか
 int line_flag = 0;               //最初にどんな風にラインの判定したか記録
 double edge_flag = 0; //ラインの端にいたときにゴールさせる確率を上げるための変数だよ(なんもなかったら0,右の端だったら1,左だったら2)
 
-const int stop_range = 8;
+const int stop_range[2]= {7,30};
+double goval_a;
 
 const int Tact_Switch = 15;  //スイッチのピン番号 
 const double pi = 3.1415926535897932384;  //円周率
@@ -38,7 +39,7 @@ moter MOTER;
 /*--------------------------------------------------------------モーター制御---------------------------------------------------------------*/
 
 
-const double val_max = 120;         //モーターの出力の最大値
+const double val_max = 100;         //モーターの出力の最大値
 
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
@@ -49,6 +50,7 @@ void setup(){
   Serial.begin(9600);  //シリアルプリントできるよ
   Wire.begin();  //I2Cできるよ
   ball.setup();  //ボールとかのセットアップ
+  goval_a = val_max / (stop_range[1] - stop_range[0]);
   
   Switch(1);
   A = 10;
@@ -89,18 +91,16 @@ void loop(){
 
   if(A == 20){
     int go_flag = 0;
-    double go_border[3];
+    double go_border[2];
     angle balldir(ball.ang,true);
 
     if(line.Lvec_Dir < 0){
       go_border[0] = line.Lvec_Dir;
       go_border[1] = line.Lvec_Dir + 180;
-      go_border[2] = line.Lvec_Dir + 360;
     }
     else{
       go_border[0] = line.Lvec_Dir - 180;
       go_border[1] = line.Lvec_Dir;
-      go_border[2] = line.Lvec_Dir + 180;
     }
 
     balldir.to_range(go_border[0],false);
@@ -112,19 +112,30 @@ void loop(){
       go_flag = 1;
     }
 
-    double goang_2[2] = {go_border[0] + 90,go_border[1] + 90};
-    go_ang = goang_2[go_flag];
+    go_ang = go_border[go_flag] + 90;
+    go_ang.to_range(180,true);
 
-    if((go_border[0] - stop_range < ball.ang && ball.ang < go_border[0] + stop_range)){
+    for(int i = 0; i < 2; i++){
+      if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){
+        stop_flag = 999;
+      }
+      else if(go_border[i] - stop_range[1] < ball.ang && ball.ang < go_border[i] + stop_range[1]){
+        goval = (abs(ball.ang) - stop_range[0]) * goval_a;
+      }
+    }
+    if(170 < abs(go_ang.degrees)){
       stop_flag = 999;
     }
-    else if((go_border[1] - stop_range < ball.ang && ball.ang < go_border[1] + stop_range)){
-      stop_flag = 999;
-    }
-    
+
     A = 50;
   }
   if(A == 50){
+    // Serial.print(" 進む角度 : ");
+    // Serial.print(go_ang.degrees);
+    Serial.print(" 進む角度 : ");
+    Serial.print(go_ang.degrees);
+    Serial.print(" 進む速さ : ");
+    Serial.print(goval);
     Serial.println();
     MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
     A = 10;

@@ -1,7 +1,7 @@
 #include<angle.h>
 #include<MA.h>
 #include<line.h>
-#define moter_max 5              //移動平均で使う配列の大きさ
+#define moter_max 3              //移動平均で使う配列の大きさ
 
 class moter{
     public:
