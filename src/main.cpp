@@ -16,6 +16,9 @@ int A = 0;  //どのチャプターに移動するかを決める変数
 int A_ball = 0;  //ライン踏んでるか踏んでないか
 int B_ball = 999;  //前回踏んでるか踏んでないか
 
+int A_line = 0;
+int B_line = 999;
+
 //上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
 
 int line_flag = 0;               //最初にどんな風にラインの判定したか記録
@@ -57,12 +60,6 @@ void setup(){
   goval_a = val_max / (stop_range[1] - stop_range[0]);
   
   Switch(1);
-  if(45 < abs(ac.dir)){
-    Far = 100;
-  }
-  else{
-    Far = readUS();
-  }
   A = 10;
 }
 
@@ -73,23 +70,16 @@ void loop(){
   double AC_val = 100;  //姿勢制御の最終的な値を入れるグローバル変数
   angle go_ang(0,true);
   int goval = val_max;
-  int ball_flag = 0;  //ボールがコート上にあるかないか
+  int ball_flag = 0;  //ボールがコート上にあるかないか 
+  int Line_flag = 0;
   int stop_flag = 5;
-  int far = 0;
 
   if(A == 10){  //情報入手
     ball_flag = ball.getBallposition();  //ボールの位置取得
     AC_val = ac.getAC_val();             //姿勢制御の値入手
-    line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
-
-    if(abs(ac.dir) < 5){
-      Far = readUS();
-    }
-
-    far = Far;
-
-    if(ball_flag == 0){  //ボール見てなかったら
-      A = 15;  //止まるとこ
+    Line_flag = line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
+    if(Line_flag == 0){  //ボール見てなかったら
+      A = 30;  //止まるとこ
     }
     else{  //ボール見てたら
       A = 20;  //進む角度決めるとこ
@@ -136,9 +126,11 @@ void loop(){
     for(int i = 0; i < 2; i++){
       if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){
         stop_flag = 999;
+        break;
       }
       else if(go_border[i] - stop_range[1] < ball.ang && ball.ang < go_border[i] + stop_range[1]){
-        goval = (abs(ball.ang) - stop_range[0]) * goval_a;
+        goval = abs((abs(ball.ang) - stop_range[0]) * goval_a);
+        break;
       }
     }
     if(170 < abs(go_ang.degrees)){
@@ -161,115 +153,55 @@ void loop(){
       Sentor.reset();
     }
 
-    if(3000 < Sentor.read_ms()){
+    A = 50;
+
+    if(1500 < Sentor.read_ms()){
+      Serial.print(" cat ");
+      stop_flag = 0;
       go_ang = ball.ang;
       A = 30;
     }
-    else{
-      A = 40;
-    }
   }
   if(A == 30){
-    int A_ = 0;
-    int A_line = 0;
-    int B_line = 999;
-    while(1){
-      A_ = 10;
-      if(A_ == 10){
-        ball_flag = ball.getBallposition();
-        int line_flag = line.getLINE_Vec();
-        AC_val = ac.getAC_val();
-        if(ball_flag == 0){
-          A_ = 15;
-        }
-        else{
-          A_ = 20;
-        }
-      }
-
-      if(A_ == 15){
-        while(1){
-          MOTER.moter_0();
-          ball.getBallposition();
-          if(ball.far_x != 0 || ball.far_y != 0){
-            A_ = 20;
-            break;
-          }
-        }
-      }
-      
-      if(A_ == 20){
-        if(abs(ball.ang) < 30){
-          go_ang = ball.ang;
-        }
-        else{
-          double ang_defference = 75.0 / ball.far;  //どれくらい急に回り込みするか(ボールが近くにあるほど急に回り込みする)
-          /*-----------------------------------------------------!!!!!!!!!重要!!!!!!!!----------------------------------------------------------*/
-
-          if(ball.ang < 0){  //ここで進む角度決めてるよ!(ボールの角度が負の場合)
-            go_ang = ball.ang + (abs(ball.ang)<90 ? ball.ang*0.5 : -45) * (0.2 + ang_defference);  //ボールの角度と距離から回り込む角度算出してるよ!
-          }
-          else{  //(ボールの角度が正の場合)
-            go_ang = ball.ang + (abs(ball.ang)<90 ? ball.ang*0.5 : 45) * (0.2 + ang_defference);  //ボールの角度と距離から回り込む角度算出してるよ!
-          }
-        }
-        A_ = 30;
-      }
-
-      if(A_ == 30){
-        if(line_flag == 1){  //ラインがオンだったら
-          A_line = 1;
-          angle linedir(line.Lvec_Dir,true);
-
-          if(A_line != B_line){  //前回はライン踏んでなくて今回はライン踏んでるよ～ってとき(ここはかなり重要!)
-            B_line = A_line;
-
-            line_flag = line.switchLineflag(linedir);
-
-            if(line_flag == 3){
-              A = 20;
-              break;
-            }
-
-            if(line.Lrange_num == 1){  //ラインをちょっと踏んでるとき(ここでは緊急性が高くないとする)
-              stop_flag = line_flag;   //緊急性高くないし、まともにライン踏んでるから緩めの処理するよ
-            }
-            else{  //斜めに踏んでるか、またはラインをまたいでるとき(緊急性が高いとするよ,進む角度ごと変えるよ)
-              go_ang = line.decideGoang(linedir,line_flag);
-            }
-
-            MOTER.moter_0();
-            delay(75);
-          }
-          else{  //連続でライン踏んでるとき
-            if(1 < line.Lrange_num){  //ラインをまたいでいたらその真逆に動くよ
-              go_ang = line.decideGoang(linedir,line_flag);
-              stop_flag = 0;
-            }
-            else{
-              stop_flag = line.switchLineflag(linedir);
-              line_flag = stop_flag;
-            }
-          }
-          if(line_flag == 0){  //ライン踏んでるけど別に進んでいいよ～って時
-            B_line = 0;  //ラインで特に影響受けてないからライン踏んでないのと扱い同じのほうが都合いいよね!
-          }
-        }
-        else{
-          A_line = 0;
-          if(A_line != B_line){
-            B_line = A_line;
-          }
-          line_flag = 0;
-        }
-        A_ = 50;
-      }
-
-      if(A_ = 50){
-        MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
-        A_ = 10;
-      }
+    goval = val_max;
+    Timer.reset();
+    while(Timer.read_ms() < 500){
+      AC_val = ac.getAC_val();
+      MOTER.moveMoter(go_ang,goval,AC_val,0,line);
     }
+    while(1){
+      ball.getBallposition();
+      AC_val = ac.getAC_val();
+      int Line_flag = line.getLINE_Vec();
+      double ang_defference = 75.0 / ball.far;  //どれくらい急に回り込みするか(ボールが近くにあるほど急に回り込みする)
+      angle linedir(line.Lvec_Dir,true);
+        
+      if(ball.ang < 0){  //ここで進む角度決めてるよ!(ボールの角度が負の場合)
+        go_ang = ball.ang + (abs(ball.ang)<90 ? ball.ang*0.5 : -45) * (0.2 + ang_defference);  //ボールの角度と距離から回り込む角度算出してるよ!
+      }
+      else{  //(ボールの角度が正の場合)
+        go_ang = ball.ang + (abs(ball.ang)<90 ? ball.ang*0.5 : 45) * (0.2 + ang_defference);  //ボールの角度と距離から回り込む角度算出してるよ!
+      }
+
+      if(Line_flag == 1){
+        line_flag = line.switchLineflag(linedir);
+
+        if(line_flag == 3){
+          break;
+        }
+        else if(line_flag == 1){
+          go_ang = 180;
+        }
+      }
+      go_ang.to_range(180,true);
+
+      Serial.print(" 進む角度 : ");
+      Serial.print(go_ang.degrees);
+      ball.print();
+      Serial.println();
+      MOTER.moveMoter(go_ang,goval,AC_val,0,line);
+    }
+    A = 10;
   }
   if(A == 50){
     // Serial.print(" 進む角度 : ");
@@ -334,11 +266,14 @@ void Switch(int flag){
   while(1){
     if(A == 0){
       if(flag == 2){
+        delay(100);
         if(digitalRead(Tact_Switch) == HIGH){
-          delay(100);
           digitalWrite(line.LINE_light,LOW);  //ラインの光止めるよ
           MOTER.moter_0();
           A = 1;
+        }
+        else{
+          break;
         }
       }
       else{
@@ -369,6 +304,7 @@ void Switch(int flag){
     }
 
     if(A == 3){
+      delay(100);
       if(digitalRead(Tact_Switch) == LOW){
         A = 4;  //スイッチはなされたらいよいよスタートだよ
       }

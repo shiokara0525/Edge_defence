@@ -38,7 +38,7 @@ private:
 
     double Lrad; //ラインの角度のラジアン
 
-    int LINE_Level = 700; //ラインの閾値
+    int LINE_Level = 735; //ラインの閾値
 
     double Lsencer_Dir[24]; //ラインセンサの角度
     double LINE_X[27]; //ラインセンサのX座標
