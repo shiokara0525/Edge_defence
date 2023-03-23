@@ -2,23 +2,23 @@
 
 #include <timer.h>
 #include <Arduino.h>
-
+#include<angle.h>
 
 class LINE{
 public:
     int getLINE_Vec(); //ラインセンサのベクトル(距離,角度)を取得する関数
     void print();
     void setup();
-    int switchLineflag(float);
-    float decideGoang(float,int);
+    int switchLineflag(angle);
+    float decideGoang(angle,int);
 
     double Lvec_Long; //ラインのベクトルの長さ
     double Lvec_Long_move; //ラインのベクトルの長さの移動量
     double Lvec_Dir_move; //ラインの和のベクトルの角度の移動量
     double Lvec_Dir; //ラインの和のベクトルの角度
-    int Lrange_num = 0; //ラインの範囲を求めるための変数をリセット
     double Lvec_X = 0; //ラインセンサのX座標の和のベクトル
     double Lvec_Y = 0; //ラインセンサのY座標の和のベクトル
+    int Lrange_num = 0; //ラインの範囲を求めるための変数をリセット
 
     int LINE_on; //ラインがロボットの下になかったら0,あったら1にする
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
@@ -38,7 +38,7 @@ private:
 
     double Lrad; //ラインの角度のラジアン
 
-    int LINE_Level = 700; //ラインの閾値
+    int LINE_Level = 600; //ラインの閾値
 
     double Lsencer_Dir[24]; //ラインセンサの角度
     double LINE_X[27]; //ラインセンサのX座標

@@ -15,8 +15,8 @@ float MA::demandAve(float result){
     }
 
     ave /= (lenth < count ? lenth : count);
-    Serial.print(ave);
-    Serial.print(" ");
+    // Serial.print(ave);
+    // Serial.print(" ");
     count++;
     return ave;
 }
