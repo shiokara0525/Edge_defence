@@ -93,12 +93,8 @@ void loop(){
       MOTER.moveMoter(go_ang,goval,ac_val,0,line);
       int line_flag = line.getLINE_Vec();
       int Far = US.readFar();
-      Serial.println("dog");
-      Serial.print(" 距離 : ");
-      Serial.print(Far);
 
       if(line_flag == 1){
-        Serial.println("dog");
         break;
       }
 
@@ -106,7 +102,6 @@ void loop(){
         Switch(2);
       }
     }
-    Serial.println("dog");
     A = 20;
   }
 
