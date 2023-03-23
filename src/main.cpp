@@ -7,40 +7,35 @@
 #include<angle.h>
 #include<MA.h>
 #include<moter.h>
+#include<US.h>
 
-/*--------------------------------------------------------いろいろ変数----------------------------------------------------------------------*/
-
-
-int A = 0;  //どのチャプターに移動するかを決める変数
-
-int A_line = 0;  //ライン踏んでるか踏んでないか
-int B_line = 999;  //前回踏んでるか踏んでないか
-
-//上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
-
-int line_flag = 0;               //最初にどんな風にラインの判定したか記録
-double edge_flag = 0; //ラインの端にいたときにゴールさせる確率を上げるための変数だよ(なんもなかったら0,右の端だったら1,左だったら2)
-
-const int stop_range[2]= {7,20};
-double goval_a;
+/*-------------------------------------------------------ピン番号＆定数---------------------------------------------------------------------*/
 
 const int Tact_Switch = 15;  //スイッチのピン番号 
 const int pingPin = 32;
 const double pi = 3.1415926535897932384;  //円周率
 
-void Switch(int);
-int readUS();
+/*--------------------------------------------------------いろいろ変数----------------------------------------------------------------------*/
 
 Ball ball;  //ボールのオブジェクトだよ(基本的にボールの位置取得は全部ここ)
 AC ac;      //姿勢制御のオブジェクトだよ(基本的に姿勢制御は全部ここ)
 LINE line;  //ラインのオブジェクトだよ(基本的にラインの判定は全部ここ)
 timer Timer;
 moter MOTER;
-MA US;
+us US;
 
 
-/*--------------------------------------------------------------モーター制御---------------------------------------------------------------*/
+int A = 0;  //どのチャプターに移動するかを決める変数
 
+int A_line = 0;  //ライン踏んでるか踏んでないか
+int B_line = 999;  //前回踏んでるか踏んでないか
+//上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
+
+
+const int stop_range[2]= {7,20};
+double goval_a;
+
+void Switch(int);
 
 const double val_max = 100;         //モーターの出力の最大値
 
@@ -73,14 +68,10 @@ void loop(){
     ball.getBallposition();  //ボールの位置取得
     AC_val = ac.getAC_val(); //姿勢制御の値入手
     Line_flag = line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
-    Serial.print("ライン踏んでる? : ");
-    Serial.print(Line_flag);
     A = 20;
     if(Line_flag == 0){
-      int Far = readUS();
-      Serial.print(" 距離 : ");
-      Serial.print(Far);
-      if(Far < 50){
+      int Far = US.readFar();
+      if(40 < Far){
         A = 15;
       }
     }
@@ -221,46 +212,4 @@ void Switch(int flag){
     }
   }
   return;
-}
-
-
-
-
-int readUS(){
-  unsigned long duration;
-  int cm;
-  //ピンをOUTPUTに設定（パルス送信のため）
-  pinMode(pingPin, OUTPUT);
-  //LOWパルスを送信
-  digitalWrite(pingPin, LOW);
-  delayMicroseconds(2);  
-  //HIGHパルスを送信
-  digitalWrite(pingPin, HIGH);  
-  //5uSパルスを送信してPingSensorを起動
-  delayMicroseconds(5); 
-  digitalWrite(pingPin, LOW); 
-  
-  //入力パルスを読み取るためにデジタルピンをINPUTに変更（シグナルピンを入力に切り替え）
-  pinMode(pingPin, INPUT);
-  //入力パルスの長さを測定
-  duration = pulseIn(pingPin, HIGH,6000);
-
-  //パルスの長さを半分に分
-  duration=duration/2;
-  //cmに変換
-  cm = int(duration/29); 
-  if(cm == 0){
-    cm = 100;
-  }
-
-
-  delayMicroseconds(100);
-  cm = US.demandAve(cm);
-  for(int i = 0; i < 8; i++){
-    if(cm < 20 + (i * 10)){
-      cm = 20 + (i * 10);
-      break;
-    }
-  }
-  return cm;
 }

@@ -43,7 +43,7 @@ void moter::moveMoter(angle ang,int val,double ac_val,int go_flag,LINE line){  /
       Mval[i] = -mSin[i] * mval_x + mCos[i] * back_val;
     }
     else if(go_flag == 5){
-      Mval[i] = -mSin[i] *(mval_x + line.Lvec_X * 0.5)  + mCos[i] *(mval_y + line.Lvec_Y * 0.5);
+      Mval[i] = -mSin[i] *(mval_x + line.Lvec_X * 0.75)  + mCos[i] *(mval_y + line.Lvec_Y * 0.75);
     }
     else if(go_flag == 999){
       Mval[i] = 0;
