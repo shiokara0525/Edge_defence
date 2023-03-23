@@ -32,12 +32,14 @@ int B_line = 999;  //前回踏んでるか踏んでないか
 //上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
 
 
-const int stop_range[2]= {7,20};
+const int stop_range[2]= {5,20};
 double goval_a;
+
+int side_flag = 0;
 
 void Switch(int);
 
-const double val_max = 100;         //モーターの出力の最大値
+const double val_max = 120;         //モーターの出力の最大値
 
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
@@ -68,11 +70,17 @@ void loop(){
     ball.getBallposition();  //ボールの位置取得
     AC_val = ac.getAC_val(); //姿勢制御の値入手
     Line_flag = line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
-    A = 20;
+    A = 30;
     if(Line_flag == 0){
       int Far = US.readFar();
-      if(40 < Far){
+      Serial.print(" 距離 : ");
+      Serial.print(Far);
+      ac.print();
+      if(70 < Far || 90 < abs(ac.dir)){
         A = 15;
+      }
+      else{
+        A = 20;
       }
     }
   }
@@ -84,9 +92,18 @@ void loop(){
       int ac_val = ac.getAC_val();
       MOTER.moveMoter(go_ang,goval,ac_val,0,line);
       int line_flag = line.getLINE_Vec();
+      int Far = US.readFar();
+      Serial.println("dog");
+      Serial.print(" 距離 : ");
+      Serial.print(Far);
+
       if(line_flag == 1){
         Serial.println("dog");
         break;
+      }
+
+      if(digitalReadFast(Tact_Switch) == LOW){
+        Switch(2);
       }
     }
     Serial.println("dog");
@@ -94,6 +111,11 @@ void loop(){
   }
 
   if(A == 20){
+    go_ang = line.Lvec_Dir;
+    A = 50;
+  }
+
+  if(A == 30){
     int go_flag = 0;
     double go_border[2];
     angle balldir(ball.ang,true);
@@ -132,15 +154,16 @@ void loop(){
       stop_flag = 999;
     }
 
+    if(go_ang.degrees < 0){
+      side_flag = 1;
+    }
+    else{
+      side_flag = 2;
+    }
     A = 50;
   }
 
   if(A == 50){
-    line.print();
-    Serial.print(" 進む角度 : ");
-    Serial.print(go_ang.degrees);
-    Serial.print(" 進む速さ : ");
-    Serial.print(goval);
     Serial.println();
     MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
     A = 10;

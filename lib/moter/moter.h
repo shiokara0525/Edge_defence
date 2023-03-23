@@ -1,7 +1,7 @@
 #include<angle.h>
 #include<MA.h>
 #include<line.h>
-#define moter_max 3              //移動平均で使う配列の大きさ
+#define moter_max 10   //移動平均で使う配列の大きさ
 
 class moter{
     public:
@@ -14,4 +14,6 @@ class moter{
         double mSin[4] = {1,1,-1,-1};  //行列式のsinの値
         double mCos[4] = {1,-1,-1,1};  //行列式のcosの値
         MA Moter[4];
+        MA Moter_x;
+        MA Moter_y;
 };
