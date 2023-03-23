@@ -42,7 +42,7 @@ MA US;
 /*--------------------------------------------------------------モーター制御---------------------------------------------------------------*/
 
 
-const double val_max = 120;         //モーターの出力の最大値
+const double val_max = 100;         //モーターの出力の最大値
 
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
@@ -63,29 +63,46 @@ void setup(){
 
 
 void loop(){
-  double AC_val = 100;  //姿勢制御の最終的な値を入れるグローバル変数
+  double AC_val = 0;  //姿勢制御の最終的な値を入れるグローバル変数
   angle go_ang(0,true);
   int goval = val_max;
   int stop_flag = 5;
+  int Line_flag = 0;
 
   if(A == 10){  //情報入手
     ball.getBallposition();  //ボールの位置取得
-    AC_val = ac.getAC_val();             //姿勢制御の値入手
-    line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
+    AC_val = ac.getAC_val(); //姿勢制御の値入手
+    Line_flag = line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
+    Serial.print("ライン踏んでる? : ");
+    Serial.print(Line_flag);
     A = 20;
+    if(Line_flag == 0){
+      int Far = readUS();
+      Serial.print(" 距離 : ");
+      Serial.print(Far);
+      if(Far < 50){
+        A = 15;
+      }
+    }
   }
 
   if(A == 15){
+    go_ang = 179.9;
     int far = readUS();
     Serial.print(" 距離 : ");
     Serial.print(far);
-    if(40 < far){
-      go_ang = 179.9;
-      while(line.getLINE_Vec() == 0){
-        AC_val = ac.getAC_val();
-        //MOTER.moveMoter(go_ang,goval,AC_val,0,line);
+    goval = 70;
+    while(1){
+      far = readUS();
+      AC_val = ac.getAC_val();
+      MOTER.moveMoter(go_ang,goval,AC_val,0,line);
+      Line_flag = line.getLINE_Vec();
+      if(Line_flag == 1){
+        Serial.println("dog");
+        break;
       }
     }
+    Serial.println("dog");
     A = 20;
   }
 
@@ -132,6 +149,7 @@ void loop(){
   }
 
   if(A == 50){
+    line.print();
     Serial.print(" 進む角度 : ");
     Serial.print(go_ang.degrees);
     Serial.print(" 進む速さ : ");
@@ -230,7 +248,6 @@ int readUS(){
   pinMode(pingPin, INPUT);
   //入力パルスの長さを測定
   duration = pulseIn(pingPin, HIGH,6000);
-  Serial.print(duration);
 
   //パルスの長さを半分に分
   duration=duration/2;
