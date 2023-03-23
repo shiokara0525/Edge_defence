@@ -21,7 +21,7 @@ int B_line = 999;  //前回踏んでるか踏んでないか
 int line_flag = 0;               //最初にどんな風にラインの判定したか記録
 double edge_flag = 0; //ラインの端にいたときにゴールさせる確率を上げるための変数だよ(なんもなかったら0,右の端だったら1,左だったら2)
 
-const int stop_range[2]= {7,30};
+const int stop_range[2]= {7,20};
 double goval_a;
 
 const int Tact_Switch = 15;  //スイッチのピン番号 
@@ -88,16 +88,12 @@ void loop(){
 
   if(A == 15){
     go_ang = 179.9;
-    int far = readUS();
-    Serial.print(" 距離 : ");
-    Serial.print(far);
     goval = 70;
     while(1){
-      far = readUS();
-      AC_val = ac.getAC_val();
-      MOTER.moveMoter(go_ang,goval,AC_val,0,line);
-      Line_flag = line.getLINE_Vec();
-      if(Line_flag == 1){
+      int ac_val = ac.getAC_val();
+      MOTER.moveMoter(go_ang,goval,ac_val,0,line);
+      int line_flag = line.getLINE_Vec();
+      if(line_flag == 1){
         Serial.println("dog");
         break;
       }
