@@ -21,6 +21,8 @@ public:
     int Lrange_num = 0; //ラインの範囲を求めるための変数をリセット
 
     int LINE_on; //ラインがロボットの下になかったら0,あったら1にする
+    double Lrad; //ラインの角度のラジアン
+    int LINE_Level = 600; //ラインの閾値
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
 
 private:
@@ -35,10 +37,6 @@ private:
     const int Lselect[3] = {LINE_A, LINE_B, LINE_C}; //ラインセンサのマルチプレクサを制御するためのピンを配列に格納
     const int Lread[3] = {LINE_1, LINE_2, LINE_3}; //ラインセンサICの出力を読み取るためのピンを配列に格納
     double PI = 3.1415926535897932384626; //円周率
-
-    double Lrad; //ラインの角度のラジアン
-
-    int LINE_Level = 600; //ラインの閾値
 
     double Lsencer_Dir[24]; //ラインセンサの角度
     double LINE_X[27]; //ラインセンサのX座標

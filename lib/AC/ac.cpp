@@ -32,6 +32,16 @@ double AC::getAC_val(){  //姿勢制御の値返す関数
 
 
 
+float AC::getnowdir(){
+  bno.getEvent(&event);
+  dir = event.orientation.x - dir_target;
+  if(180 < abs(dir)){
+    dir += (dir < 0 ? 360 : -360);
+  }
+  
+  return dir;
+}
+
 
 void AC::print(){  //現在の角度、正面方向、姿勢制御の最終的な値を表示
   Serial.print(" 角度 : ");

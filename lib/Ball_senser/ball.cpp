@@ -7,8 +7,8 @@
 
 
 int Ball::getBallposition(){  //ボールの位置を極座標系で取得
-  double Bfar_y_all = 0;
-  double Bfar_x_all = 0;
+  double Bfar_y_ave = 0;
+  double Bfar_x_ave = 0;
   double Bfar = 0;  //グローバル変数に戻す前の変数(直接代入するのはは何となく不安)
   double Bang = 0;  //グローバル変数に戻す前の変数
   int Bmax_num = 0;
@@ -48,29 +48,25 @@ int Ball::getBallposition(){  //ボールの位置を極座標系で取得
     Bfar_x += Bval[num] * Cos[num];
     Bfar_y += Bval[num] * Sin[num];
   }
-  far_y_acc[cou % MAX] = Bfar_y;
-  far_x_acc[cou % MAX] = Bfar_x;
-  cou++;  //この関数の呼び出し回数をカウント
 
-  for(int i = 0; i < MAX; i++){
-    Bfar_y_all += far_y_acc[i]; 
-    Bfar_x_all += far_x_acc[i];
-  }
+  Bfar_x_ave = ball_x.demandAve(Bfar_x);
+  Bfar_y_ave = ball_y.demandAve(Bfar_y);
 
   Bang = degrees(atan2(Bfar_y,Bfar_x));    //ボールの角度を計算(atan2はラジアンで返すので角度に変換)  
 
   ang = Bang;
-  far_x = Bfar_x * 0.05;
-  far_y = Bfar_y * 0.05;
-  Bfar = 200 - (sqrt(pow(Bfar_x,2.0) + pow(Bfar_y,2.0)) * 0.05);
+  far_x = Bfar_x_ave * 0.05;
+  far_y = Bfar_y_ave * 0.05;
+  Bfar = 200 - sqrt(pow(Bfar_x_ave,2.0) + pow(Bfar_y_ave,2.0)) * 0.05;
   Bfar = (Bfar < 40 ? 40 : Bfar);
   far = Bfar;
   if(far_x == 0 && far_y == 0){  //ボールを見失ったとき止まっとく
-    return 0;
+    flag = 0;
   }
   else{  //ボールを見てたら返り値
-    return 1;
+    flag = 1;
   }
+  return flag;
 }
 
 
@@ -99,4 +95,6 @@ void Ball::setup(){  //ボール関連のセットアップ
   for(int i = 0; i < MAX; i++){
     low_acc[i] = 0;  //配列の中の値を0にする
   }
+  ball_x.setLenth(MAX);
+  ball_y.setLenth(MAX);
 }
