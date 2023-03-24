@@ -66,7 +66,7 @@ void Switch(int);
 void OLED_setup();
 void OLED();
 
-double val_max = 120;         //モーターの出力の最大値
+int val_max = 120;         //モーターの出力の最大値
 float RA_size = 80;
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
@@ -74,7 +74,6 @@ float RA_size = 80;
 
 
 void setup(){
-  goval_a = val_max / (stop_range[1] - stop_range[0]);
   Serial.begin(9600);  //シリアルプリントできるよ
   Wire.begin();  //I2Cできるよ
   ball.setup();  //ボールとかのセットアップ
@@ -83,6 +82,7 @@ void setup(){
 
   OLED_setup();
   OLED();
+  goval_a = val_max / (stop_range[1] - stop_range[0]);
   A = 10;
 }
 
@@ -129,7 +129,6 @@ void loop(){
 
       if(digitalReadFast(Tact_Switch) == LOW){
         A = 10;
-        Switch(2);
       }
     }
     A = 20;
@@ -156,7 +155,7 @@ void loop(){
 
     balldir.to_range(go_border[0],false);
 
-    if(go_border[0] < balldir.degrees && balldir.degrees < go_border[1]){
+    if(go_border[0] < balldir.degree && balldir.degree < go_border[1]){
       go_flag = 0;
     }
     else{
@@ -170,25 +169,40 @@ void loop(){
       if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){
         goval = 0;
         stop_flag = 999;
+        Serial.print(" 基準点(1) : ");
+        Serial.print(go_border[i] - stop_range[1]);
+        Serial.print(" 基準点(2) : ");
+        Serial.print(go_border[i] + stop_range[1]);
       }
-      else if(go_border[i] - stop_range[1] < ball.ang && ball.ang < go_border[i] + stop_range[1]){
-        goval = (stop_range[1] - abs(ball.ang)) * goval_a;
-      }
+      // else if(go_border[i] - stop_range[1] < ball.ang && ball.ang < go_border[i] + stop_range[1]){
+      //   goval = (stop_range[1] - abs(ball.ang)) * goval_a;
+      //   Serial.print(" 基準点(1) : ");
+      //   Serial.print(go_border[i] - stop_range[1]);
+      //   Serial.print(" 基準点(2) : ");
+      //   Serial.print(go_border[i] + stop_range[1]);
+      // }
     }
-    if(170 < abs(go_ang.degrees)){
+    if(170 < abs(go_ang.degree)){
+      goval = 0;
       stop_flag = 999;
     }
 
-    if(go_ang.degrees < 0){
-      side_flag = 1;
+    if(120 < abs(go_ang.degree)){
+      goval /= 2;
+      MOTER.line_val = 1.5;
     }
     else{
-      side_flag = 2;
+      MOTER.line_val = 0.35;
     }
     A = 50;
   }
 
   if(A == 50){
+    ball.print();
+    Serial.print(" モーターの出力 : ");
+    Serial.print(goval);
+    // Serial.print(" 進む角度 : ");
+    // Serial.print(go_ang.degrees);
     Serial.println();
     MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
     A = 10;
@@ -203,66 +217,6 @@ void loop(){
 
 
 /*----------------------------------------------------------------いろいろ関数-----------------------------------------------------------*/
-
-
-
-
-
-void Switch(int flag){
-  int A = 0;
-  while(1){
-    if(A == 0){
-      if(flag == 2){
-        if(digitalRead(Tact_Switch) == HIGH){
-          delay(100);
-          digitalWrite(line.LINE_light,LOW);  //ラインの光止めるよ
-          MOTER.moter_0();
-          A = 1;
-        }
-      }
-      else{
-        A = 1;
-      }
-    }
-
-    if(A == 1){
-      delay(100);
-      if(digitalRead(Tact_Switch) == LOW){
-        A = 2;
-      }
-    }
-
-    if(A == 2){
-      if(flag == 1){
-        ball.setup();
-        ac.setup();  //正面方向決定(その他姿勢制御関連のセットアップ)
-        line.setup();  //ラインとかのセットアップ
-      }
-      else{
-        ac.setup_2();  //姿勢制御の値リセットしたよ
-        digitalWrite(line.LINE_light,HIGH);  //ライン付けたよ
-      }
-      
-      if(digitalRead(Tact_Switch) == HIGH){
-        A = 3;  //準備オッケーだよ 
-      }
-    }
-
-    if(A == 3){
-      delay(100);
-      if(digitalRead(Tact_Switch) == LOW){
-        A = 4;  //スイッチはなされたらいよいよスタートだよ
-      }
-    }
-    
-    if(A == 4){
-      if(digitalRead(Tact_Switch) == HIGH){
-        break;
-      }
-    }
-  }
-  return;
-}
 
 
 

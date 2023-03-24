@@ -1,13 +1,14 @@
 #include<angle.h>
 #include<MA.h>
 #include<line.h>
-#define moter_max 10   //移動平均で使う配列の大きさ
+#define moter_max 3   //移動平均で使う配列の大きさ
 
 class moter{
     public:
         moter();
         void moveMoter(angle ang,int val,double ac_val,int stop_flag,LINE line);
         void moter_0();
+        float line_val = 0.5;
     private:
         const int ena[4] = {0,2,4,28};
         const int pah[4] = {1,3,5,29};
@@ -17,5 +18,4 @@ class moter{
         MA Moter_x;
         MA Moter_y;
         float back_val = 2;
-        float line_val = 0.75;
 };

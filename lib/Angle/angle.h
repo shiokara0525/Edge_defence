@@ -7,7 +7,7 @@ class angle{
         angle(double,bool,double,bool);
         void setAng(double,bool);
         double to_range(double,bool);
-        float degrees;
+        float degree;
         double radians;
         void operator=(double);
         void operator-=(double);

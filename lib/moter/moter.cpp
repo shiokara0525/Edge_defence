@@ -6,8 +6,7 @@ moter::moter(){
 	for(int i = 0; i < 4; i++){
     pinMode(ena[i],OUTPUT);
     pinMode(pah[i],OUTPUT);
-    Moter_x.setLenth(moter_max);
-    Moter_y.setLenth(moter_max);
+    Moter[i].setLenth(moter_max);
   }  //モーターのピンと行列式に使う定数の設定
 }
 
@@ -22,13 +21,7 @@ void moter::moveMoter(angle ang,int val,double ac_val,int go_flag,LINE line){  /
   double mval_x = cos(ang.radians);  //進みたいベクトルのx成分
   double mval_y = sin(ang.radians);  //進みたいベクトルのy成分
 
-  mval_x = Moter_x.demandAve(mval_x);  //移動平均で値を出す
-  mval_y = Moter_y.demandAve(mval_y);  //移動平均で値を出す
-  if(100 < abs(ac_val)){
-    ac_val = (ac_val < 0 ? -100 : 100);
-  }
-
-
+  float back_val = 2;
   
   max_val -= ac_val;  //姿勢制御とその他のモーターの値を別に考えるために姿勢制御の値を引いておく
   
@@ -58,6 +51,16 @@ void moter::moveMoter(angle ang,int val,double ac_val,int go_flag,LINE line){  /
     
     if(abs(Mval[i]) > g){  //絶対値が一番高い値だったら
       g = abs(Mval[i]);    //一番大きい値を代入
+    }
+  }
+
+  for(int i = 0; i < 4; i++){  //移動平均求めるゾーンだよ
+    Mval[i] /= g;  //モーターの値を制御(常に一番大きい値が1になるようにする)
+
+    Mval[i] = Moter[i].demandAve(Mval[i]);
+
+    if(abs(Mval[i]) > h){  //絶対値が一番高い値だったら
+      h = abs(Mval[i]);    //一番大きい値を代入
     }
   }
 

@@ -77,10 +77,10 @@ void Ball::print(){  //ボールの位置を表示
   Serial.print(far);
   Serial.print(" ボールの角度 : ");
   Serial.print(ang);
-  Serial.print(" ボールの距離(y) : ");
-  Serial.print(far_y);
-  Serial.print(" (x) : ");
-  Serial.print(far_x);
+  // Serial.print(" ボールの距離(y) : ");
+  // Serial.print(far_y);
+  // Serial.print(" (x) : ");
+  // Serial.print(far_x);
 }
 
 

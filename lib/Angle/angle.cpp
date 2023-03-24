@@ -2,12 +2,12 @@
 
 angle::angle(double ang,bool flag){
     if(flag == true){
-        degrees = ang;
+        degree = ang;
         radians = radians(ang);
     }
     else{
         radians = ang;
-        degrees = degrees(ang);
+        degree = degrees(ang);
     }
 }
 
@@ -15,12 +15,12 @@ angle::angle(double ang,bool flag){
 
 angle::angle(double ang,bool ang_unit,double border,bool border_flag){
     if(ang_unit == true){
-        degrees = ang;
+        degree = ang;
         radians = radians(ang);
     }
     else{
         radians = ang;
-        degrees = degrees(ang);
+        degree = degrees(ang);
     }
 
     float max;
@@ -34,14 +34,14 @@ angle::angle(double ang,bool ang_unit,double border,bool border_flag){
         max = border + 360;
     }
 
-    while(degrees < low){
-        degrees += 360;
+    while(degree < low){
+        degree += 360;
     }
 
-    while(max < degrees){
-        degrees -= 360;
+    while(max < degree){
+        degree -= 360;
     }
-    radians = radians(degrees);
+    radians = radians(degree);
 }
 
 
@@ -58,28 +58,28 @@ double angle::to_range(double border,bool flag){
         max = border + 360;
     }
 
-    while(this->degrees < low){
-       this->degrees += 360;
+    while(this->degree < low){
+       this->degree += 360;
     }
 
-    while(max < this->degrees){
-        this->degrees -= 360;
+    while(max < this->degree){
+        this->degree -= 360;
     }
-    radians = radians(this->degrees);
+    radians = radians(this->degree);
 
-    return degrees;
+    return degree;
 }
 
 
 
 void angle::setAng(double ang,bool ang_unit){
     if(ang_unit == true){
-        degrees = ang;
+        degree = ang;
         radians = radians(ang);
     }
     else{
         radians = ang;
-        degrees = degrees(ang);
+        degree = degrees(ang);
     }
 }
 
@@ -87,20 +87,20 @@ void angle::setAng(double ang,bool ang_unit){
 
 
 void angle::operator=(double ang){
-    this->degrees = ang;
+    this->degree = ang;
     this->radians = radians(ang);
 }
 
 
 
 void angle::operator-=(double ang){
-    this->degrees -= ang;
-    this->radians = radians(degrees);
+    this->degree -= ang;
+    this->radians = radians(degree);
 }
 
 
 
 void angle::operator+=(double ang){
-    this->degrees += ang;
-    this->radians = radians(degrees);
+    this->degree += ang;
+    this->radians = radians(degree);
 }
