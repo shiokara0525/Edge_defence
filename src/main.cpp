@@ -45,6 +45,7 @@ const double pi = 3.1415926535897932384;  //円周率
 Ball ball;  //ボールのオブジェクトだよ(基本的にボールの位置取得は全部ここ)
 AC ac;      //姿勢制御のオブジェクトだよ(基本的に姿勢制御は全部ここ)
 LINE line;  //ラインのオブジェクトだよ(基本的にラインの判定は全部ここ)
+timer Timer_sentor;
 timer Timer;
 moter MOTER;
 us US;
@@ -56,13 +57,14 @@ int A_line = 0;  //ライン踏んでるか踏んでないか
 int B_line = 999;  //前回踏んでるか踏んでないか
 //上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
 
+int A_sentor = 0;
+int B_sentor = 999;
 
 const int stop_range[2]= {5,20};
 double goval_a;
 
 int side_flag = 0;
 
-void Switch(int);
 void OLED_setup();
 void OLED();
 
@@ -174,13 +176,6 @@ void loop(){
         Serial.print(" 基準点(2) : ");
         Serial.print(go_border[i] + stop_range[1]);
       }
-      // else if(go_border[i] - stop_range[1] < ball.ang && ball.ang < go_border[i] + stop_range[1]){
-      //   goval = (stop_range[1] - abs(ball.ang)) * goval_a;
-      //   Serial.print(" 基準点(1) : ");
-      //   Serial.print(go_border[i] - stop_range[1]);
-      //   Serial.print(" 基準点(2) : ");
-      //   Serial.print(go_border[i] + stop_range[1]);
-      // }
     }
     if(170 < abs(go_ang.degree)){
       goval = 0;
@@ -194,7 +189,45 @@ void loop(){
     else{
       MOTER.line_val = 0.35;
     }
+
+    if(abs(ball.ang) < 15){
+      A_sentor = 1;
+      if(A_sentor != B_sentor){
+        B_sentor = A_sentor;
+        Timer_sentor.reset();
+      }
+
+      if(3000 < Timer_sentor.read_ms()){
+        A = 40;
+      }
+    }
+    else{
+      A_sentor = 0;
+      if(A_sentor != B_sentor){
+        B_sentor = A_sentor;
+        Timer_sentor.reset();
+      }
+    }
     A = 50;
+  }
+
+  if(A == 30){
+    timer Timer_cat;
+    Timer_cat.reset();
+    while(abs(ball.ang) < 15){
+      ball.getBallposition();
+      line.getLINE_Vec();
+      go_ang = ball.ang;
+      float ac_val = ac.getAC_val();
+      
+      angle linedir(line.Lvec_Dir,true);
+      MOTER.moveMoter(go_ang,goval,ac_val,0,line);
+
+      if(1000 < Timer_cat.read_ms()){
+        break;
+      }
+    }
+    A = 15;
   }
 
   if(A == 50){
