@@ -16,4 +16,6 @@ class moter{
         MA Moter[4];
         MA Moter_x;
         MA Moter_y;
+        float back_val = 2;
+        float line_val = 0.75;
 };

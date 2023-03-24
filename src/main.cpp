@@ -28,13 +28,6 @@ int A = 0;  //どのチャプターに移動するかを決める変数
 
 int A_line = 0;  //ライン踏んでるか踏んでないか
 int B_line = 999;  //前回踏んでるか踏んでないか
-
-//上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
-
-int A = 0;  //どのチャプターに移動するかを決める変数
-
-int A_line = 0;  //ライン踏んでるか踏んでないか
-int B_line = 999;  //前回踏んでるか踏んでないか
 //上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
 
 
@@ -98,13 +91,13 @@ void loop(){
       int ac_val = ac.getAC_val();
       MOTER.moveMoter(go_ang,goval,ac_val,0,line);
       int line_flag = line.getLINE_Vec();
-      int Far = US.readFar();
 
       if(line_flag == 1){
         break;
       }
 
       if(digitalReadFast(Tact_Switch) == LOW){
+        A = 10;
         Switch(2);
       }
     }

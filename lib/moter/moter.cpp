@@ -24,11 +24,11 @@ void moter::moveMoter(angle ang,int val,double ac_val,int go_flag,LINE line){  /
 
   mval_x = Moter_x.demandAve(mval_x);  //移動平均で値を出す
   mval_y = Moter_y.demandAve(mval_y);  //移動平均で値を出す
-  if(100 < ac_val){
-    ac_val = 100;
+  if(100 < abs(ac_val)){
+    ac_val = (ac_val < 0 ? -100 : 100);
   }
 
-  float back_val = 2;
+
   
   max_val -= ac_val;  //姿勢制御とその他のモーターの値を別に考えるために姿勢制御の値を引いておく
   
@@ -50,7 +50,7 @@ void moter::moveMoter(angle ang,int val,double ac_val,int go_flag,LINE line){  /
       Mval[i] = -mSin[i] * mval_x + mCos[i] * back_val;
     }
     else if(go_flag == 5){
-      Mval[i] = -mSin[i] *(mval_x + line.Lvec_X * 0.75)  + mCos[i] *(mval_y + line.Lvec_Y * 0.75);
+      Mval[i] = -mSin[i] *(mval_x + line.Lvec_X * line_val)  + mCos[i] *(mval_y + line.Lvec_Y * line_val);
     }
     else if(go_flag == 999){
       Mval[i] = 0;
