@@ -109,7 +109,7 @@ void loop(){
       Serial.print(" 距離 : ");
       Serial.print(Far);
       ac.print();
-      if(70 < Far || 90 < abs(ac.dir)){
+      if(70 < Far ||(OutB_flag == 1 || OutB_flag == 0)){
         A = 15;
       }
       else{
@@ -119,8 +119,17 @@ void loop(){
   }
 
   if(A == 15){
+    if(OutB_flag == 0){
+      go_ang = -150.0;
+    }
+    else if(OutB_flag == 1){
+      go_ang = 150.0;
+    }
+    else{
+      go_ang = 179.9;
+    }
     go_ang = 179.9;
-    goval = 70;
+    goval = 100;
     while(1){
       int ac_val = ac.getAC_val();
       MOTER.moveMoter(go_ang,goval,ac_val,0,line);
@@ -134,6 +143,8 @@ void loop(){
         A = 10;
       }
     }
+
+    OutB_flag = 999;
     A = 20;
   }
 
@@ -655,7 +666,7 @@ void OLED() {
       display.println("Dir :");
       display.setTextSize(2);
       display.setCursor(80,30);
-      display.println(/*int(ac.getnowdir())*/ OutB_flag);
+      display.println(int(ac.getnowdir()));
       
       //角度を再設定させるか、もとの選択画面に戻るかを決めるスイッチについての設定
 
