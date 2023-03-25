@@ -59,8 +59,6 @@ int B_line = 999;  //前回踏んでるか踏んでないか
 
 int A_sentor = 0;
 int B_sentor = 999;
-int A_sentor = 0;
-int B_sentor = 999;
 
 const int stop_range[2]= {5,20};
 double goval_a;
