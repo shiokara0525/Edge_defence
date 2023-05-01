@@ -94,31 +94,27 @@ void setup(){
 
 void loop(){
   double AC_val = 0;  //姿勢制御の最終的な値を入れるグローバル変数
-  angle go_ang(0,true);
-  int goval = val_max;
-  int stop_flag = 5;
-  int Line_flag = 0;
+  angle go_ang(0,true);  //進む角度だぜいえいえ
+  int goval = val_max;  //進む速度だぜいえいえ
+  int stop_flag = 5;  //ライン踏んでるときどんな進み方をするか決めるぜ
+  int Line_flag = 0;  //ライン踏んでるか踏んでないかを判定する変数
 
   if(A == 10){  //情報入手
     ball.getBallposition();  //ボールの位置取得
     AC_val = ac.getAC_val(); //姿勢制御の値入手
     Line_flag = line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
     A = 30;
-    if(Line_flag == 0){
-      int Far = US.readFar();
-      Serial.print(" 距離 : ");
-      Serial.print(Far);
-      ac.print();
-      if(70 < Far ||(OutB_flag == 1 || OutB_flag == 0)){
-        A = 15;
+    if(Line_flag == 0){  //ライン踏んでないとき(ラインを踏んでいるときはAを30にしているのでここには来ない)
+      if(OutB_flag == 1 || OutB_flag == 0){
+        A = 15;  //アウトオブバウンズから復帰するとき
       }
       else{
-        A = 20;
+        A = 20;  //がんばってラインに戻るとき
       }
     }
   }
 
-  if(A == 15){
+  if(A == 15){  //アウトオブバウンズから復帰するとき
     if(OutB_flag == 0){
       go_ang = -165.0;
     }
@@ -129,7 +125,7 @@ void loop(){
       go_ang = 179.9;
     }
 
-    goval = 100;
+    goval = 80;
     while(1){
       int ac_val = ac.getAC_val();
       MOTER.moveMoter(go_ang,goval,ac_val,0,line);
@@ -148,15 +144,15 @@ void loop(){
     A = 20;
   }
 
-  if(A == 20){
+  if(A == 20){  //ラインに戻るとき
     go_ang = line.Lvec_Dir;
     A = 50;
   }
 
-  if(A == 30){
+  if(A == 30){  //ライン踏んでるとき(ライントレース)
     int go_flag = 0;
-    double go_border[2];
-    angle balldir(ball.ang,true);
+    double go_border[2];  //ボールの角度によって進む方向を変えるためのボーダーの変数(ラインに対して垂直な直線で進む角度の区分を分けるイメージ)
+    angle balldir(ball.ang,true);  //ボールの角度を入れるオブジェクト
 
     if(line.Lvec_Dir < 0){
       go_border[0] = line.Lvec_Dir;
@@ -167,28 +163,25 @@ void loop(){
       go_border[1] = line.Lvec_Dir;
     }
 
-    balldir.to_range(go_border[0],false);
+    balldir.to_range(go_border[0],false);  //ボールの角度をボーダーの範囲に収める(go_border[0] ~ go_border[1]+180)
 
-    if(go_border[0] < balldir.degree && balldir.degree < go_border[1]){
+    if(go_border[0] < balldir.degree && balldir.degree < go_border[1]){  //ボールの角度を区分分けする
       go_flag = 0;
     }
     else{
       go_flag = 1;
     }
 
-    go_ang = go_border[go_flag] + 90;
-    go_ang.to_range(180,true);
+    go_ang = go_border[go_flag] + 90;  //進む角度決定
+    go_ang.to_range(180,true);  //進む角度を-180 ~ 180の範囲に収める
 
     for(int i = 0; i < 2; i++){
-      if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){
+      if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){  //正面方向にボールがあったら停止するよ
         goval = 0;
         stop_flag = 999;
-        Serial.print(" 基準点(1) : ");
-        Serial.print(go_border[i] - stop_range[1]);
-        Serial.print(" 基準点(2) : ");
-        Serial.print(go_border[i] + stop_range[1]);
       }
     }
+
     if(170 < abs(go_ang.degree)){
       goval = 0;
       stop_flag = 999;
@@ -198,20 +191,30 @@ void loop(){
       goval = 50;
       MOTER.line_val = 2;
     }
+    else if(abs(go_ang.degree) < 60){
+      MOTER.line_val = 2;
+    }
     else{
       MOTER.line_val = 0.15;
     }
     A = 50;
 
-    if(abs(ball.ang) < 15){
+    if(abs(ball.ang) < 25){
       A_sentor = 1;
       if(A_sentor != B_sentor){
         B_sentor = A_sentor;
         Timer_sentor.reset();
       }
+      ball.print();
 
-      if(3000 < Timer_sentor.read_ms()){
-        A = 40;
+      if(5000 < Timer_sentor.read_ms()){
+        if(ball.far < 100){
+          A = 40;
+          Timer_sentor.reset();
+        }
+        else{
+          Timer_sentor.reset();
+        }
       }
     }
     else{
@@ -228,7 +231,7 @@ void loop(){
     timer Timer_cat;
     Timer_cat.reset();
     goval = 160;
-    if(abs(ball.ang) < 15){
+    if(abs(ball.ang) < 25){
       timer Timer_dog;
       Timer_dog.reset();
       go_ang = 0;
@@ -243,14 +246,8 @@ void loop(){
         go_ang = ball.ang;
         float ac_val = ac.getAC_val();
         MOTER.moveMoter(go_ang,goval,ac_val,0,line);
-        angle linedir(line.Lvec_Dir,true);
-
-        Serial.print(" dog ");
-        ball.print();
-        Serial.println();
 
         if(5000 < Timer_cat.read_ms() || line_flag == 1){
-          Serial.print(" ハムスター ");
           break;
         }
       }
@@ -259,11 +256,6 @@ void loop(){
   }
 
   if(A == 50){
-    ball.print();
-    Serial.print(" モーターの出力 : ");
-    Serial.print(goval);
-    // Serial.print(" 進む角度 : ");
-    // Serial.print(go_ang.degrees);
     Serial.println();
     MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
     A = 10;
