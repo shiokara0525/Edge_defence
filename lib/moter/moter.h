@@ -8,6 +8,7 @@ class moter{
         moter();
         void moveMoter(angle ang,int val,double ac_val,int stop_flag,LINE line);
         void moter_0();
+        void moter_ac(float);
         float line_val = 0.5;
     private:
         const int ena[4] = {0,2,4,28};

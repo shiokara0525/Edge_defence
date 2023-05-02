@@ -4,7 +4,7 @@
 #include <Adafruit_BNO055.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_SPIDevice.h>
- 
+#include <MA.h>
 
 
 class AC{
@@ -28,8 +28,11 @@ private:
 
   double dir_old = 0;  //前Fの方向
 
-  const float kp = 2;  //比例制御の比例定数
-  const float kd = 2;  //微分制御の定数
+  const float kp = 3;  //比例制御の比例定数
+  const float kd = 5;  //微分制御の定数
+  const float ki = 0.005;
+
+  MA kki;
 
   sensors_event_t event;  //ジャイロのいろんな値入れるやつ
   Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);

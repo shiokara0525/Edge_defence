@@ -91,10 +91,11 @@ void setup(){
 
 void loop(){
   double AC_val = 0;  //姿勢制御の最終的な値を入れるグローバル変数
-  angle go_ang(0,true);
-  int goval = val_max;
-  int stop_flag = 5;
-  int Line_flag = 0;
+  angle go_ang(0,true);  //進む角度だぜいえいえ
+  int goval = val_max;  //進む速度だぜいえいえ
+  int stop_flag = 5;  //ライン踏んでるときどんな進み方をするか決めるぜ
+  int Line_flag = 0;  //ライン踏んでるか踏んでないかを判定する変数
+  int ac_flag = 0;
 
   if(A == 10){  //情報入手
     ball.getBallposition();  //ボールの位置取得
@@ -166,21 +167,9 @@ void loop(){
     go_ang.to_range(180,true);
 
     for(int i = 0; i < 2; i++){
-      if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){
-        goval = 0;
-        stop_flag = 999;
-        Serial.print(" 基準点(1) : ");
-        Serial.print(go_border[i] - stop_range[1]);
-        Serial.print(" 基準点(2) : ");
-        Serial.print(go_border[i] + stop_range[1]);
+      if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){  //正面方向にボールがあったら停止するよ
+        ac_flag = 1;
       }
-      // else if(go_border[i] - stop_range[1] < ball.ang && ball.ang < go_border[i] + stop_range[1]){
-      //   goval = (stop_range[1] - abs(ball.ang)) * goval_a;
-      //   Serial.print(" 基準点(1) : ");
-      //   Serial.print(go_border[i] - stop_range[1]);
-      //   Serial.print(" 基準点(2) : ");
-      //   Serial.print(go_border[i] + stop_range[1]);
-      // }
     }
     if(170 < abs(go_ang.degree)){
       goval = 0;
@@ -197,14 +186,45 @@ void loop(){
     A = 50;
   }
 
+
+
+  if(A == 40){
+    timer Timer_cat;
+    Timer_cat.reset();
+    goval = 160;
+    if(abs(ball.ang) < 25){
+      timer Timer_dog;
+      Timer_dog.reset();
+      go_ang = 0;
+      while(Timer_dog.read_ms() < 500){
+        float ac_val = ac.getAC_val();
+        MOTER.moveMoter(go_ang,goval,ac_val,0,line);
+      }
+
+      while(abs(ball.ang) < 30){
+        ball.getBallposition();
+        int line_flag = line.getLINE_Vec();
+        go_ang = ball.ang;
+        float ac_val = ac.getAC_val();
+        MOTER.moveMoter(go_ang,goval,ac_val,0,line);
+
+        if(5000 < Timer_cat.read_ms() || line_flag == 1){
+          break;
+        }
+      }
+    }
+    A = 15;
+  }
+
   if(A == 50){
-    ball.print();
-    Serial.print(" モーターの出力 : ");
-    Serial.print(goval);
-    // Serial.print(" 進む角度 : ");
-    // Serial.print(go_ang.degrees);
     Serial.println();
-    MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
+    if(ac_flag == 0){
+      MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
+    }
+    else{
+      MOTER.moter_ac(AC_val);
+    }
+    
     A = 10;
   }
 

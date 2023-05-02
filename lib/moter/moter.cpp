@@ -80,6 +80,17 @@ void moter::moveMoter(angle ang,int val,double ac_val,int go_flag,LINE line){  /
 }
 
 
+void moter::moter_ac(float ac_val){
+  for(int i = 0; i < 4; i++){
+    if(0 < ac_val){
+      digitalWrite(pah[i],HIGH);
+    }
+    else{
+      digitalWrite(pah[i],LOW);
+    }
+    analogWrite(ena[i],abs(ac_val));
+  }
+}
 
 
 void moter::moter_0(){  //モーターの値を0にする関数
