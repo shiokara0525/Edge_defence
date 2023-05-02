@@ -98,6 +98,7 @@ void loop(){
   int goval = val_max;  //進む速度だぜいえいえ
   int stop_flag = 5;  //ライン踏んでるときどんな進み方をするか決めるぜ
   int Line_flag = 0;  //ライン踏んでるか踏んでないかを判定する変数
+  int ac_flag = 0;
 
   if(A == 10){  //情報入手
     ball.getBallposition();  //ボールの位置取得
@@ -177,8 +178,7 @@ void loop(){
 
     for(int i = 0; i < 2; i++){
       if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){  //正面方向にボールがあったら停止するよ
-        goval = 0;
-        stop_flag = 999;
+        ac_flag = 1;
       }
     }
 
@@ -257,7 +257,13 @@ void loop(){
 
   if(A == 50){
     Serial.println();
-    MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
+    if(ac_flag == 0){
+      MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
+    }
+    else{
+      MOTER.moter_ac(AC_val);
+    }
+    
     A = 10;
   }
 

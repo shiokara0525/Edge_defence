@@ -30,7 +30,7 @@ private:
 
   const float kp = 3;  //比例制御の比例定数
   const float kd = 5;  //微分制御の定数
-  const float ki = 0.001;
+  const float ki = 0.005;
 
   MA kki;
 
