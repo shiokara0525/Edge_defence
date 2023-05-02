@@ -10,5 +10,6 @@ class MA{
     public:
         void setLenth(int);
         float demandAve(float);
+        float sum(float);
         void reset();
 };

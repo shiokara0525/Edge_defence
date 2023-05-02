@@ -24,7 +24,7 @@ private:
 
   
   double val = 0;  //姿勢制御の値
-  double val_old = 0;  //1F前の姿勢制御の値
+  double kkp_old = 0;  //1F前の姿勢制御の値
 
   double dir_old = 0;  //前Fの方向
 
