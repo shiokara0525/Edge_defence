@@ -129,7 +129,7 @@ void loop(){
     goval = 80;
     while(1){
       int ac_val = ac.getAC_val();
-      MOTER.moveMoter(go_ang,goval,ac_val,0,line);
+      MOTER.moveMoter(go_ang,100,ac_val,0,line);
       int line_flag = line.getLINE_Vec();
 
       if(line_flag == 1){
@@ -140,9 +140,10 @@ void loop(){
         A = 10;
       }
     }
+    Timer_sentor.reset();
 
     OutB_flag = 999;
-    A = 20;
+    A = 30;
   }
 
   if(A == 20){  //ラインに戻るとき
@@ -186,8 +187,7 @@ void loop(){
       goval = 0;
       stop_flag = 999;
     }
-
-    if(120 < abs(go_ang.degree)){
+    else if(120 < abs(go_ang.degree)){
       goval = 50;
       MOTER.line_val = 2;
     }
@@ -207,14 +207,8 @@ void loop(){
       }
       ball.print();
 
-      if(5000 < Timer_sentor.read_ms()){
-        if(ball.far < 100){
-          A = 40;
-          Timer_sentor.reset();
-        }
-        else{
-          Timer_sentor.reset();
-        }
+      if(7000 < Timer_sentor.read_ms()){
+        A = 40;
       }
     }
     else{
@@ -228,30 +222,31 @@ void loop(){
   }
 
   if(A == 40){
-    timer Timer_cat;
-    Timer_cat.reset();
     goval = 160;
+
     if(abs(ball.ang) < 25){
       timer Timer_dog;
       Timer_dog.reset();
-      go_ang = 0;
-      while(Timer_dog.read_ms() < 500){
+
+      while(Timer_dog.read_ms() < 900){
         float ac_val = ac.getAC_val();
+        ball.getBallposition();
+        go_ang = ball.ang;
         MOTER.moveMoter(go_ang,goval,ac_val,0,line);
+        if(30 < abs(ball.ang)){
+          break;
+        }
       }
 
-      while(abs(ball.ang) < 30){
-        ball.getBallposition();
+      while(1){
         int line_flag = line.getLINE_Vec();
-        go_ang = ball.ang;
-        float ac_val = ac.getAC_val();
-        MOTER.moveMoter(go_ang,goval,ac_val,0,line);
 
-        if(5000 < Timer_cat.read_ms() || line_flag == 1){
+        if(5000 < Timer_dog.read_ms() || line_flag == 1){
           break;
         }
       }
     }
+    goval = 80;
     A = 15;
   }
 
