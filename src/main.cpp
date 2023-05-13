@@ -46,7 +46,6 @@ Ball ball;  //ボールのオブジェクトだよ(基本的にボールの位�
 AC ac;      //姿勢制御のオブジェクトだよ(基本的に姿勢制御は全部ここ)
 LINE line;  //ラインのオブジェクトだよ(基本的にラインの判定は全部ここ)
 timer Timer_sentor;
-timer Timer;
 moter MOTER;
 us US;
 timer timer_OLED; //タイマーの宣言(OLED用)
@@ -126,13 +125,12 @@ void loop(){
       go_ang = 179.9;
     }
 
-    goval = 80;
     while(1){
       int ac_val = ac.getAC_val();
-      MOTER.moveMoter(go_ang,100,ac_val,0,line);
+      MOTER.moveMoter(go_ang,100,ac_val,0,line);  //後ろに下がるよ
       int line_flag = line.getLINE_Vec();
 
-      if(line_flag == 1){
+      if(line_flag == 1){  //ラインに当たったら抜けるよ
         break;
       }
 
@@ -196,44 +194,43 @@ void loop(){
     }
     else{
       MOTER.line_val = 0.15;
-    }
+    }  //進む方向から、スピードとかを決めてるよ
     A = 50;
 
-    if(abs(ball.ang) < 25){
+    if(abs(ball.ang) < 25){  //前にボールがあるとき
       A_sentor = 1;
       if(A_sentor != B_sentor){
         B_sentor = A_sentor;
-        Timer_sentor.reset();
+        Timer_sentor.reset();  //ここに入ったらタイマースタートするよ
       }
-      ball.print();
 
       if(7000 < Timer_sentor.read_ms()){
-        A = 40;
+        A = 40;  //7秒続けてボールが前にあったら前進するよ
       }
     }
     else{
       A_sentor = 0;
       if(A_sentor != B_sentor){
         B_sentor = A_sentor;
-        Timer_sentor.reset();
+        Timer_sentor.reset();  //前から外れたらリセットするよ
       }
     }
     
   }
 
-  if(A == 40){
+  if(A == 40){  //ボールが前にあるから前進するよ
     goval = 160;
 
     if(abs(ball.ang) < 25){
-      timer Timer_dog;
+      timer Timer_dog;  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ)
       Timer_dog.reset();
 
-      while(Timer_dog.read_ms() < 900){
+      while(Timer_dog.read_ms() < 900){  //0.9秒前進するよ
         float ac_val = ac.getAC_val();
         ball.getBallposition();
         go_ang = ball.ang;
         MOTER.moveMoter(go_ang,goval,ac_val,0,line);
-        if(30 < abs(ball.ang)){
+        if(30 < abs(ball.ang)){  //前にボールがなくなったらすぐ戻るよ
           break;
         }
       }
@@ -251,7 +248,6 @@ void loop(){
   }
 
   if(A == 50){
-    Serial.println();
     if(ac_flag == 0){
       MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
     }
