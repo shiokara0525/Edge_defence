@@ -22,14 +22,25 @@ float MA::demandAve(float result){
 }
 
 
-
 float MA::sum(float result){
     record[count % lenth] = result;
+    float sum = 0;
+    for(int i = 0; i < lenth; i++){
+        sum += record[i];
+    }
+    count++;
+    return sum;
+} 
+
+
+
+float MA::returnAve(){
     float ave = 0;
     for(int i = 0; i < lenth; i++){
         ave += record[i];
     }
-    count++;
+
+    ave /= (lenth < count ? lenth : count);
     return ave;
 }
 

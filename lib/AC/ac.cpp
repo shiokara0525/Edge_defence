@@ -61,6 +61,7 @@ void AC::print(){  //現在の角度、正面方向、姿勢制御の最終的�
 
 void AC::setup(){  //セットアップ
   kki.setLenth(1000);
+  kki.reset();
   bno.begin();
   bno.getEvent(&event);  //方向入手
   delay(100);

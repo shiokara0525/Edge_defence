@@ -42,7 +42,7 @@ const double pi = 3.1415926535897932384;  //円周率
 
 /*--------------------------------------------------------いろいろ変数----------------------------------------------------------------------*/
 
-Ball ball;  //ボールのオブジェクトだよ(基本的にボールの位置取得は全部ここ)
+BALL ball;  //ボールのオブジェクトだよ(基本的にボールの位置取得は全部ここ)
 AC ac;      //姿勢制御のオブジェクトだよ(基本的に姿勢制御は全部ここ)
 LINE line;  //ラインのオブジェクトだよ(基本的にラインの判定は全部ここ)
 timer Timer_sentor;
@@ -63,7 +63,7 @@ const int stop_range[2]= {5,20};
 double goval_a;
 
 int side_flag = 0;
-int OutB_flag = 0;  //ロボットが復帰するときに右側におかれるか左側におかれるかを表示する変数(0が右 1が左 999がなし)(デフォルトは999)
+int OutB_flag = 999;  //ロボットが復帰するときに右側におかれるか左側におかれるかを表示する変数(0が右 1が左 999がなし)(デフォルトは999)
 
 void OLED_setup();
 void OLED();
@@ -76,15 +76,16 @@ float RA_size = 80;
 
 
 void setup(){
+  Serial8.begin(115200);  //ボールのシリアル通信(ボールの位置取得
   Serial.begin(9600);  //シリアルプリントできるよ
   Wire.begin();  //I2Cできるよ
-  ball.setup();  //ボールとかのセットアップ
   ac.setup();  //正面方向決定(その他姿勢制御関連のセットアップ)(ただ通信を成功させときたいだけ)
   line.setup();  //ラインとかのセットアップ
 
   OLED_setup();
   OLED();
   goval_a = val_max / (stop_range[1] - stop_range[0]);
+  ball.print();
   A = 10;
 }
 
@@ -235,13 +236,13 @@ void loop(){
         }
       }
 
-      while(1){
-        int line_flag = line.getLINE_Vec();
+      // while(1){
+      //   int line_flag = line.getLINE_Vec();
 
-        if(5000 < Timer_dog.read_ms() || line_flag == 1){
-          break;
-        }
-      }
+      //   if(5000 < Timer_dog.read_ms() || line_flag == 1){
+      //     break;
+      //   }
+      // }
     }
     goval = 80;
     A = 15;
@@ -268,7 +269,20 @@ void loop(){
 
 /*----------------------------------------------------------------いろいろ関数-----------------------------------------------------------*/
 
+void serialEvent8(){
+  int x = 0;
+  int y = 0;
+  int sawa = Serial8.read();
+  if(sawa == 255){
+    while(!Serial8.available());
+    x = Serial8.read() - 127;
+    while(!Serial8.available());
+    y = Serial8.read() - 127;
+  }
 
+  x = ball.ball_x.demandAve(x);
+  y = ball.ball_y.demandAve(y);
+}
 
 
 void OLED_setup(){

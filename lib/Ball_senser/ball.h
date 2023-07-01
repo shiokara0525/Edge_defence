@@ -1,36 +1,37 @@
 #pragma once
 
-
 #include <Arduino.h>
-#include <timer.h>
 #include<MA.h>
 
-#define MAX 20
-
-class Ball{
-public:
-  double far;  //ボールまでの距離
-  double ang;  //ボールまでの角度
-  double far_x;
-  double far_y;
-  int getBallposition();  //ボールの位置を取得
-  void print();  //ボールの距離と角度を表示
-  void setup();  //セットアップ
-  int flag = 0;
-
-private:
-  int cou = 0;  //ボールを見た回数(getBallpositionに入った回数をカウントするやつ)
-  double low_acc[MAX];  //ボールまでの距離(最新100回分をはかるように、円環バッファを使う)
-  double far_x_acc[MAX];
-  double far_y_acc[MAX];
-  double Sin[16]; //sinの値(22.5°ずつ)
-  double Cos[16]; //cosの値(22.5°ずつ)
-
-  const int ch_num = 1000; //センサーの値取る回数
-  const int sen_lowest = 200; //センサーがボールを見てないと判断する値
-  const int ball_sen[16] ={
-  9,10,11,12,13,34,35,36,37,38,39,40,41,6,7,8};
-  timer timer_ball;
-  MA ball_x;
-  MA ball_y;
+class BALL{
+  public:
+    BALL(){
+    ball_x.setLenth(3);
+    ball_y.setLenth(3);
+    }
+    MA ball_x;
+    MA ball_y;
+    float ang;
+    float far;
+    float x_pos;
+    float y_pos;
+    int flag = 1;
+    void getBallposition(){
+      float x = ball_x.returnAve();
+      float y = ball_y.returnAve();
+      x_pos = 130 - x;
+      y_pos = 130 - y;
+      ang = degrees(atan2(y,x));
+      far = sqrt(x_pos*x_pos + y_pos*y_pos) - 50;
+    }
+    void print(){
+      Serial.print(" ang : ");
+      Serial.print(ang);
+      Serial.print(" far : ");
+      Serial.print(far);
+      Serial.print(" x : ");
+      Serial.print(x_pos);
+      Serial.print(" y : ");
+      Serial.print(y_pos);
+    }
 };
