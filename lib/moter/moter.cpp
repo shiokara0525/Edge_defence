@@ -65,30 +65,29 @@ void moter::moveMoter(angle ang,int val,double ac_val,int go_flag,LINE line){  /
   }
 
   for(int i = 0; i < 4; i++){  //モーターの値を計算するところだよ
-    
     Mval[i] = Mval[i] / h * max_val + ac_val;  //モーターの値を計算(進みたいベクトルの値と姿勢制御の値を合わせる)
+    Val[i] = Mval[i];
+    
 
-    if(i == 2){
-      if(0 < Mval[i]){            //モーターの回転方向が正の時
-        digitalWrite(pah[i] , LOW);    //モーターの回転方向を正にする
-        analogWrite(ena[i] , Mval[i]); //モーターの回転速度を設定
+    for(int i = 0; i < 4; i++){
+      if(i == 0 || i == 1 || i == 2){
+        if(Mval[i] < 0){
+          digitalWrite(pah[i],LOW);
+        }
+        else{
+          digitalWrite(pah[i],HIGH);
+        }
       }
-      else{  //モーターの回転方向が負の時
-        digitalWrite(pah[i] , HIGH);     //モーターの回転方向を負にする
-        analogWrite(ena[i] , -Mval[i]);  //モーターの回転速度を設定
+      else{
+        if(Mval[i] < 0){
+          digitalWrite(pah[i],HIGH);
+        }
+        else{
+          digitalWrite(pah[i],LOW);
+        }
       }
+      analogWrite(ena[i],abs(Mval[i]));
     }
-    else{
-      if(0 < Mval[i]){            //モーターの回転方向が正の時
-        digitalWrite(pah[i] , HIGH);    //モーターの回転方向を正にする
-        analogWrite(ena[i] , Mval[i]); //モーターの回転速度を設定
-      }
-      else{  //モーターの回転方向が負の時
-        digitalWrite(pah[i] , LOW);     //モーターの回転方向を負にする
-        analogWrite(ena[i] , -Mval[i]);  //モーターの回転速度を設定
-      }
-    }
-
   }
 }
 
@@ -125,7 +124,7 @@ void moter::moveMoter_0(angle ang,int val,double ac_val){
     
     Mval[i] = Mval[i] / h * max_val + ac_val;  //モーターの値を計算(進みたいベクトルの値と姿勢制御の値を合わせる)
 
-    if(i == 2){
+    if(i == 0 || i == 1 || i == 2){
       if(0 < Mval[i]){            //モーターの回転方向が正の時
         digitalWrite(pah[i] , LOW);    //モーターの回転方向を正にする
         analogWrite(ena[i] , Mval[i]); //モーターの回転速度を設定
@@ -151,11 +150,21 @@ void moter::moveMoter_0(angle ang,int val,double ac_val){
 
 void moter::moter_ac(float ac_val){
   for(int i = 0; i < 4; i++){
-    if(0 < ac_val){
-      digitalWrite(pah[i],HIGH);
+    if(i == 0 || i == 1 || i == 2){
+      if(ac_val < 0){
+        digitalWrite(pah[i],LOW);
+      }
+      else{
+        digitalWrite(pah[i],HIGH);
+      }
     }
     else{
-      digitalWrite(pah[i],LOW);
+      if(ac_val < 0){
+        digitalWrite(pah[i],HIGH);
+      }
+      else{
+        digitalWrite(pah[i],LOW);
+      }
     }
     analogWrite(ena[i],abs(ac_val));
   }

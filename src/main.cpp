@@ -34,6 +34,10 @@ long old_encVal = 0;  //エンコーダーの過去値を示す変数
 unsigned int address = 0x00;  //EEPROMのアドレス
 int toogle = 0;  //トグルスイッチの値を記録（トグルを引くときに使う）
 const int Toggle_Switch = 14;  //スイッチのピン番号
+void OLED_moving();
+
+int lFla = 0;
+int gb[2];
 /*-------------------------------------------------------ピン番号＆定数---------------------------------------------------------------------*/
 
 const int Tact_Switch = 15;  //スイッチのピン番号 
@@ -59,24 +63,25 @@ int B_line = 999;  //前回踏んでるか踏んでないか
 int A_sentor = 0;
 int B_sentor = 999;
 
-const int stop_range[2]= {5,20};
+const int stop_range[2]= {10,20};
 double goval_a;
 
 int side_flag = 0;
-int OutB_flag = 999;  //ロボットが復帰するときに右側におかれるか左側におかれるかを表示する変数(0が右 1が左 999がなし)(デフォルトは999)
+int OutB_flag = 0;  //ロボットが復帰するときに右側におかれるか左側におかれるかを表示する変数(0が右 1が左 999がなし)(デフォルトは999)
 
 void OLED_setup();
 void OLED();
 
 int val_max = 120;         //モーターの出力の最大値
 float RA_size = 80;
+float goDir = 0;
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
 
 
 
 void setup(){
-  Serial8.begin(115200);  //ボールのシリアル通信(ボールの位置取得
+  Serial8.begin(57600);
   Serial.begin(9600);  //シリアルプリントできるよ
   Wire.begin();  //I2Cできるよ
   ac.setup();  //正面方向決定(その他姿勢制御関連のセットアップ)(ただ通信を成功させときたいだけ)
@@ -85,7 +90,6 @@ void setup(){
   OLED_setup();
   OLED();
   goval_a = val_max / (stop_range[1] - stop_range[0]);
-  ball.print();
   A = 10;
 }
 
@@ -104,6 +108,7 @@ void loop(){
     ball.getBallposition();  //ボールの位置取得
     AC_val = ac.getAC_val(); //姿勢制御の値入手
     Line_flag = line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
+    lFla = Line_flag;
     A = 30;
     if(Line_flag == 0){  //ライン踏んでないとき(ラインを踏んでいるときはAを30にしているのでここには来ない)
       if(OutB_flag == 1 || OutB_flag == 0){
@@ -194,9 +199,11 @@ void loop(){
       MOTER.line_val = 2;
     }
     else{
-      MOTER.line_val = 0.15;
+      MOTER.line_val = 0.5;
     }  //進む方向から、スピードとかを決めてるよ
     A = 50;
+    gb[0] = go_border[0];
+    gb[1] = go_border[1];
 
     if(abs(ball.ang) < 25){  //前にボールがあるとき
       A_sentor = 1;
@@ -205,9 +212,9 @@ void loop(){
         Timer_sentor.reset();  //ここに入ったらタイマースタートするよ
       }
 
-      if(7000 < Timer_sentor.read_ms()){
-        A = 40;  //7秒続けてボールが前にあったら前進するよ
-      }
+      // if(7000 < Timer_sentor.read_ms()){
+      //   A = 40;  //7秒続けてボールが前にあったら前進するよ
+      // }
     }
     else{
       A_sentor = 0;
@@ -236,13 +243,13 @@ void loop(){
         }
       }
 
-      // while(1){
-      //   int line_flag = line.getLINE_Vec();
+      while(1){
+        int line_flag = line.getLINE_Vec();
 
-      //   if(5000 < Timer_dog.read_ms() || line_flag == 1){
-      //     break;
-      //   }
-      // }
+        if(5000 < Timer_dog.read_ms() || line_flag == 1){
+          break;
+        }
+      }
     }
     goval = 80;
     A = 15;
@@ -257,7 +264,9 @@ void loop(){
     }
     
     A = 10;
+    goDir = go_ang.degree;
   }
+  OLED_moving();
 
   if(digitalRead(Tact_Switch) == LOW){
     MOTER.moter_0();
@@ -1230,4 +1239,58 @@ void OLED() {
       }
     }
   }
+}
+
+
+
+void OLED_moving(){
+  //OLEDの初期化
+  display.display();
+  display.clearDisplay();
+
+  //テキストサイズと色の設定
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  
+  display.setCursor(0,0);  //1列目
+  display.println("Bang");  //現在向いてる角度
+  display.setCursor(30,0);
+  display.println(":");
+  display.setCursor(36,0);
+  display.println(ball.ang);    //現在向いてる角度を表示
+
+  display.setCursor(0,10);  //2列目
+  display.println("goDir");  //この中に変数名を入力
+  display.setCursor(30,10);
+  display.println(":");
+  display.setCursor(36,10);
+  display.println(goDir);    //この中に知りたい変数を入力
+
+  display.setCursor(0,20); //3列目
+  display.println("Lang");  //この中に変数名を入力
+  display.setCursor(30,20);
+  display.println(":");
+  display.setCursor(36,20);
+  display.println(line.Lvec_Dir);    //この中に知りたい変数を入力
+
+  display.setCursor(0,30); //4列目
+  display.println("Lfla");  //この中に変数名を入力
+  display.setCursor(30,30);
+  display.println(":");
+  display.setCursor(36,30);
+  display.println(lFla);    //この中に知りたい変数を入力
+
+  display.setCursor(0,40); //5列目
+  display.println("gb1");  //この中に変数名を入力
+  display.setCursor(30,40);
+  display.println(":");
+  display.setCursor(36,40);
+  display.println(gb[0]);    //この中に知りたい変数を入力
+
+  display.setCursor(0,50); //6列目
+  display.println("gb2");  //この中に変数名を入力
+  display.setCursor(30,50);
+  display.println(":");
+  display.setCursor(36,50);
+  display.println(gb[1]);    //この中に知りたい変数を入力
 }

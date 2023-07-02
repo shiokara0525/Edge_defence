@@ -16,14 +16,15 @@ public:
     double Lvec_Long_move; //ラインのベクトルの長さの移動量
     double Lvec_Dir_move; //ラインの和のベクトルの角度の移動量
     double Lvec_Dir; //ラインの和のベクトルの角度
-    double Lvec_X = 0; //ラインセンサのX座標の和のベクトル
-    double Lvec_Y = 0; //ラインセンサのY座標の和のベクトル
     int Lrange_num = 0; //ラインの範囲を求めるための変数をリセット
 
     int LINE_on; //ラインがロボットの下になかったら0,あったら1にする
-    double Lrad; //ラインの角度のラジアン
-    int LINE_Level = 600; //ラインの閾値
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
+    int LINE_Level = 735; //ラインの閾値
+    double Lrad; //ラインの角度のラジアン
+    double Lvec_X = 0; //ラインセンサのX座標の和のベクトル
+    double Lvec_Y = 0; //ラインセンサのY座標の和のベクトル
+    int line_flag = 0;
 
 private:
     const int LINE_1 = 23; //ラインセンサIC1の出力を読み取るためのピン
@@ -37,6 +38,8 @@ private:
     const int Lselect[3] = {LINE_A, LINE_B, LINE_C}; //ラインセンサのマルチプレクサを制御するためのピンを配列に格納
     const int Lread[3] = {LINE_1, LINE_2, LINE_3}; //ラインセンサICの出力を読み取るためのピンを配列に格納
     double PI = 3.1415926535897932384626; //円周率
+
+    
 
     double Lsencer_Dir[24]; //ラインセンサの角度
     double LINE_X[27]; //ラインセンサのX座標

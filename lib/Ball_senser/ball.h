@@ -6,8 +6,8 @@
 class BALL{
   public:
     BALL(){
-    ball_x.setLenth(3);
-    ball_y.setLenth(3);
+    ball_x.setLenth(10);
+    ball_y.setLenth(10);
     }
     MA ball_x;
     MA ball_y;
@@ -16,13 +16,24 @@ class BALL{
     float x_pos;
     float y_pos;
     int flag = 1;
-    void getBallposition(){
+    int getBallposition(){
       float x = ball_x.returnAve();
       float y = ball_y.returnAve();
-      x_pos = 130 - x;
-      y_pos = 130 - y;
+      if(0 < x){
+        x_pos = 130 - x;
+      }
+      else{
+        x_pos = -130 - x;
+      }
+      if(0 < y){
+        y_pos = 130 - y;
+      }
+      else{
+        y_pos = -130 - y;
+      }
       ang = degrees(atan2(y,x));
-      far = sqrt(x_pos*x_pos + y_pos*y_pos) - 50;
+      far = sqrt(x_pos*x_pos + y_pos*y_pos) - 60;
+      return flag;
     }
     void print(){
       Serial.print(" ang : ");

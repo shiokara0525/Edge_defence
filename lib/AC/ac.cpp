@@ -16,18 +16,10 @@ double AC::getAC_val(){  //姿勢制御の値返す関数
   }
 
   kkp = -dir;  //比例制御の値を計算
-  kkd = -(kkp - kkp_old);  //微分制御の値を計算
-  kk_i = kki.sum(kkp);
+  kkd =  0;//-(kkp - kkp_old);  //微分制御の値を計算
+  kk_i = 0;//kki.sum(kkp);
   
   val = kkp * kp + kkd * kd + kk_i * ki;  //最終的に返す値を計算
-
-  Serial.print(" pゲイン : ");
-  Serial.print(kkp * kp);
-  Serial.print(" dゲイン : ");
-  Serial.print(kkd * kd);
-  Serial.print(" iゲイン : ");
-  Serial.print(kk_i * ki);
-  
 
   kkp_old = kkp;  //前Fの方向を更新
 
