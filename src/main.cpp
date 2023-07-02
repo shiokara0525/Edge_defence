@@ -81,7 +81,7 @@ float goDir = 0;
 
 
 void setup(){
-  Serial8.begin(57600);
+  Serial8.begin(9600);
   Serial.begin(9600);  //シリアルプリントできるよ
   Wire.begin();  //I2Cできるよ
   ac.setup();  //正面方向決定(その他姿勢制御関連のセットアップ)(ただ通信を成功させときたいだけ)
@@ -282,7 +282,7 @@ void serialEvent8(){
   int x = 0;
   int y = 0;
   int sawa = Serial8.read();
-  if(sawa == 255){
+  if(sawa == 254){
     while(!Serial8.available());
     x = Serial8.read() - 127;
     while(!Serial8.available());
@@ -1281,16 +1281,16 @@ void OLED_moving(){
   display.println(lFla);    //この中に知りたい変数を入力
 
   display.setCursor(0,40); //5列目
-  display.println("gb1");  //この中に変数名を入力
+  display.println("x");  //この中に変数名を入力
   display.setCursor(30,40);
   display.println(":");
   display.setCursor(36,40);
-  display.println(gb[0]);    //この中に知りたい変数を入力
+  display.println(ball.ball_x.returnAve());    //この中に知りたい変数を入力
 
   display.setCursor(0,50); //6列目
-  display.println("gb2");  //この中に変数名を入力
+  display.println("y");  //この中に変数名を入力
   display.setCursor(30,50);
   display.println(":");
   display.setCursor(36,50);
-  display.println(gb[1]);    //この中に知りたい変数を入力
+  display.println(ball.ball_y.returnAve());    //この中に知りたい変数を入力
 }
