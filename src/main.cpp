@@ -191,19 +191,19 @@ void loop(){
       }
     }
 
-    if(170 < abs(go_ang.degree)){
+    if(160 < abs(go_ang.degree)){
       goval = 0;
       stop_flag = 999;
     }
     else if(120 < abs(go_ang.degree)){
       goval = 50;
-      MOTER.line_val = 2;
+      MOTER.line_val = 5;
     }
     else if(abs(go_ang.degree) < 60){
-      MOTER.line_val = 2;
+      MOTER.line_val = 5;
     }
     else{
-      MOTER.line_val = 0.5;
+      MOTER.line_val = 0.75;
     }  //進む方向から、スピードとかを決めてるよ
     A = 50;
     gb[0] = go_border[0];
@@ -237,7 +237,7 @@ void loop(){
       timer Timer_dog;  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ)
       Timer_dog.reset();
 
-      while(Timer_dog.read_ms() < 900){  //0.9秒前進するよ
+      while(Timer_dog.read_ms() < 300){  //0.9秒前進するよ
         float ac_val = ac.getAC_val();
         ball.getBallposition();
         go_ang = ball.ang;
@@ -260,12 +260,13 @@ void loop(){
   }
 
   if(A == 50){
-    if(ac_flag == 0){
-      MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
-    }
-    else{
-      MOTER.moter_ac(AC_val);
-    }
+    // if(ac_flag == 0){
+    //   MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
+    // }
+    // else{
+    //   MOTER.moter_ac(AC_val);
+    // }
+    OLED_moving();
     
     A = 10;
     goDir = go_ang.degree;
