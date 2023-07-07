@@ -80,6 +80,8 @@ void OLED();
 int val_max = 120;         //モーターの出力の最大値
 float RA_size = 80;
 float goDir = 0;
+int A20_flag = 0;
+int Back_flag = 0;
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
 
@@ -108,6 +110,7 @@ void loop(){
   int stop_flag = 5;  //ライン踏んでるときどんな進み方をするか決めるぜ
   int Line_flag = 0;  //ライン踏んでるか踏んでないかを判定する変数
   int ac_flag = 0;
+  A20_flag = 0;
 
   if(A == 10){  //情報入手
     ball.getBallposition();  //ボールの位置取得
@@ -139,7 +142,7 @@ void loop(){
     while(1){
       int ac_val = ac.getAC_val();
       goDir = go_ang.degree;
-      OLED_moving();
+      //OLED_moving();
       MOTER.moveMoter(go_ang,100,ac_val,0,line);  //後ろに下がるよ
       int line_flag = line.getLINE_Vec();
 
@@ -159,6 +162,7 @@ void loop(){
 
   if(A == 20){  //ラインに戻るとき
     go_ang = line.Lvec_Dir;
+    A20_flag = 1;
     A = 50;
   }
 
@@ -166,6 +170,9 @@ void loop(){
     int go_flag = 0;
     double go_border[2];  //ボールの角度によって進む方向を変えるためのボーダーの変数(ラインに対して垂直な直線で進む角度の区分を分けるイメージ)
     angle balldir(ball.ang,true);  //ボールの角度を入れるオブジェクト
+    if(2 < line.Lrange_num){
+      line.Lvec_Dir = 90;
+    }
 
     if(line.Lvec_Dir < 0){
       go_border[0] = line.Lvec_Dir;
@@ -188,13 +195,8 @@ void loop(){
     go_ang = go_border[go_flag] + 90;  //進む角度決定
     go_ang.to_range(180,true);  //進む角度を-180 ~ 180の範囲に収める
 
-    for(int i = 0; i < 2; i++){
-      if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){  //正面方向にボールがあったら停止するよ
-        ac_flag = 1;
-      }
-    }
 
-    if(160 < abs(go_ang.degree)){
+    if(100 < abs(go_ang.degree)){
       goval = 0;
       stop_flag = 999;
       B_BA = 0;
@@ -213,9 +215,14 @@ void loop(){
         B_BA = 1;
         timer_BA.reset();
       }
-      MOTER.line_val = 0.6;
+      for(int i = 0; i < 2; i++){
+        if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){  //正面方向にボールがあったら停止するよ
+          ac_flag = 1;
+        }
+      }
+      MOTER.line_val = 0.75;
       if(100 < timer_BA.read_ms()){
-        goval -= 40;
+        goval -= 35;
       }
     }  //進む方向から、スピードとかを決めてるよ
     A = 50;
@@ -247,15 +254,21 @@ void loop(){
     goval = 100;
 
     if(abs(ball.ang) < 25){
+      if(ball.ang < 0){
+        OutB_flag = 1;
+      }
+      else{
+        OutB_flag = 2;
+      }
       Timer_dog.reset();
 
-      while(Timer_dog.read_ms() < 1000){  //0.9秒前進するよ
+      while(Timer_dog.read_ms() < 700){  //0.9秒前進するよ
         float ac_val = ac.getAC_val();
         ball.getBallposition();
         go_ang = ball.ang;
         MOTER.moveMoter(go_ang,goval,ac_val,0,line);
-        OLED_moving();
-        if(30 < abs(ball.ang)){  //前にボールがなくなったらすぐ戻るよ
+        //OLED_moving();
+        if(25 < abs(ball.ang)){  //前にボールがなくなったらすぐ戻るよ
           break;
         }
       }
@@ -272,7 +285,7 @@ void loop(){
     else{
       MOTER.moter_ac(AC_val);
     }
-    //OLED_moving();
+    OLED_moving();
     
     A = 10;
     goDir = go_ang.degree;
@@ -1322,16 +1335,16 @@ void OLED_moving(){
   display.println(lFla);    //この中に知りたい変数を入力
 
   display.setCursor(0,40); //5列目
-  display.println("Lr");  //この中に変数名を入力
+  display.println("A");  //この中に変数名を入力
   display.setCursor(30,40);
   display.println(":");
   display.setCursor(36,40);
-  display.println(line.Lrange_num);    //この中に知りたい変数を入力
+  display.println(A);    //この中に知りたい変数を入力
 
   display.setCursor(0,50); //6列目
-  display.println("timer");  //この中に変数名を入力
+  display.println("out");  //この中に変数名を入力
   display.setCursor(30,50);
   display.println(":");
   display.setCursor(36,50);
-  display.println(Timer_dog.read_ms());  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ));    //この中に知りたい変数を入力
+  display.println(OutB_flag);  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ));    //この中に知りたい変数を入力
 }
