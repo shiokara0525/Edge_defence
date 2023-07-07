@@ -23,7 +23,7 @@ void LINE::setup() {
 
 
 int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得する関数
-  int LniseF = 10;  //ラインセンサのノイズフィルタを行う回数
+  int LniseF = 5;  //ラインセンサのノイズフィルタを行う回数
   int Lnone = 0;  //ラインセンサのノイズフィルタリングをするために使う変数
   int data[24][LniseF]; //ラインセンサの値を格納する二次元配列
   int data_sum[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; //ラインセンサの値の合計を格納する配列
@@ -75,7 +75,7 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
   {
     for(int j=0; j<LniseF; j++) //ラインセンサを24個読み取るを1セットとし、100セット読み取る
     {
-      DATA[i] = data_sum[i] + data[i][j]; //ラインセンサの値を合計する
+      // DATA[i] = data_sum[i] + data[i][j]; //ラインセンサの値を合計する
 
       if(LINE_Level < data[i][j]) //ラインセンサの値が閾値より大きければ（ライン上にいるとき）
       {
@@ -96,18 +96,24 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
     {
       data_ave[i] = 0; //ラインセンサの値を0(ライン上にいない)にする
     }
-    
-    Serial.print(data_sum[i]);
-    Serial.print(" ");
-    // Serial.print(Lnone);
 
     data_sum[i] = 0; //合計値をリセット
     Lnone = 0; //ラインセンサの上にラインがあるということを数えるをリセット(一つのセンサごとに)
   }
+
+
+  data_ave[2] = 0;
+  data_ave[3] = 0;
+  data_ave[17] = 0;
+  data_ave[18] = 0;
+
+  for(int i=0; i<24; i++) //24個のラインセンサを指定する
+  {
+    Serial.print(data_ave[i]);
+    Serial.print(" "); 
+  }
   Serial.println();
-  // data_ave[4] = 0;
-  // data_ave[8] = 0;
-  // data_ave[20] = 0;
+
   int F = 0;
   for(int i = 0; i < 24; i++){
     if(data_ave[i] == 0){
@@ -124,24 +130,27 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
     return 0;
   }
 
+  detecting = 3; //前のラインセンサが検知していなければ(これがデフォルト)
   for(int i=0; i<24; i++) //24個のラインセンサを指定する
   {
     data_ave[i] *= 5;
     if(data_ave[i] > LINE_Level) //ラインセンサの値が閾値より大きければ（ラインセンサの上にラインあり）
     {
-      if(detecting == 0) //前のラインセンサが検知していなければ
+      if(detecting > 2) //前のラインセンサが検知していなければ
       {
         Lrange_num++; //ラインセンサの範囲の番号を設定（もしラインを見ていなければ、この値は0になる）
         Lfirst[Lrange_num] = i; //ラインの範囲の最初のラインセンサを記録
-        detecting = 1; //ラインを検知しているフラグを立てる
+        detecting = 0; //ラインを検知しているフラグを立てる
       }
     }
     else //ラインセンサの値が閾値より小さければ（ラインセンサの上にラインなし）
     {
-      if(detecting == 1) //前のラインセンサが検知していれば
+      detecting += 1; //ラインを検知しているフラグを下ろす
+
+      if(detecting > 2)
       {
-        Llast[Lrange_num] = i - 1; //ラインの範囲の最後のラインセンサを記録
-        detecting = 0; //ラインを検知しているフラグを下ろす
+        Llast[Lrange_num] = i - 3; //ラインの範囲の最後のラインセンサを記録
+        
       }
     }
   }
