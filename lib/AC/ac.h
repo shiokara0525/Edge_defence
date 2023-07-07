@@ -28,7 +28,7 @@ private:
 
   double kkp_old = 0;  //前Fの方向
 
-  const float kp = 1.3;  //比例制御の比例定数
+  const float kp = 1.7;  //比例制御の比例定数
   const float kd = 5;  //微分制御の定数
   const float ki = 0.001;
 

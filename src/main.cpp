@@ -142,12 +142,17 @@ void loop(){
     while(1){
       int ac_val = ac.getAC_val();
       goDir = go_ang.degree;
-      //OLED_moving();
-      MOTER.moveMoter(go_ang,100,ac_val,0,line);  //後ろに下がるよ
+      OLED_moving();
+      MOTER.moveMoter(go_ang,80,ac_val,0,line);  //後ろに下がるよ
       int line_flag = line.getLINE_Vec();
 
       if(line_flag == 1){  //ラインに当たったら抜けるよ
-        break;
+        Timer_sentor.reset();
+        MOTER.moter_0();
+        delay(50);
+        if(line_flag == 1){
+          break;
+        }
       }
 
       if(digitalReadFast(Tact_Switch) == LOW){
@@ -196,18 +201,18 @@ void loop(){
     go_ang.to_range(180,true);  //進む角度を-180 ~ 180の範囲に収める
 
 
-    if(100 < abs(go_ang.degree)){
+    if(160 < abs(go_ang.degree)){
       goval = 0;
       stop_flag = 999;
       B_BA = 0;
     }
     else if(120 < abs(go_ang.degree)){
       goval = 50;
-      MOTER.line_val = 3;
+      MOTER.line_val = 2;
       B_BA = 0;
     }
     else if(abs(go_ang.degree) < 60){
-      MOTER.line_val = 3;
+      MOTER.line_val = 2;
       B_BA = 0;
     }
     else{
@@ -220,7 +225,7 @@ void loop(){
           ac_flag = 1;
         }
       }
-      MOTER.line_val = 0.75;
+      MOTER.line_val = 0.8;
       if(100 < timer_BA.read_ms()){
         goval -= 35;
       }
@@ -254,11 +259,14 @@ void loop(){
     goval = 100;
 
     if(abs(ball.ang) < 25){
-      if(ball.ang < 0){
+      if(ball.ang < -15){
         OutB_flag = 1;
       }
-      else{
+      else if(15 < ball.ang){
         OutB_flag = 2;
+      }
+      else{
+        OutB_flag = 999;
       }
       Timer_dog.reset();
 
@@ -267,14 +275,13 @@ void loop(){
         ball.getBallposition();
         go_ang = ball.ang;
         MOTER.moveMoter(go_ang,goval,ac_val,0,line);
-        //OLED_moving();
+        OLED_moving();
         if(25 < abs(ball.ang)){  //前にボールがなくなったらすぐ戻るよ
           break;
         }
       }
     }
     goval = 80;
-    OutB_flag = 999;
     A = 15;
   }
 
@@ -1321,25 +1328,25 @@ void OLED_moving(){
   display.println(goDir);    //この中に知りたい変数を入力
 
   display.setCursor(0,20); //3列目
-  display.println("Lang");  //この中に変数名を入力
+  display.println("dir");  //この中に変数名を入力
   display.setCursor(30,20);
   display.println(":");
   display.setCursor(36,20);
-  display.println(line.Lvec_Dir);    //この中に知りたい変数を入力
+  display.println(ac.dir);    //この中に知りたい変数を入力
 
   display.setCursor(0,30); //4列目
-  display.println("Lfla");  //この中に変数名を入力
+  display.println("gb1");  //この中に変数名を入力
   display.setCursor(30,30);
   display.println(":");
   display.setCursor(36,30);
-  display.println(lFla);    //この中に知りたい変数を入力
+  display.println(gb[0]);    //この中に知りたい変数を入力
 
   display.setCursor(0,40); //5列目
-  display.println("A");  //この中に変数名を入力
+  display.println("gb2");  //この中に変数名を入力
   display.setCursor(30,40);
   display.println(":");
   display.setCursor(36,40);
-  display.println(A);    //この中に知りたい変数を入力
+  display.println(gb[1]);    //この中に知りたい変数を入力
 
   display.setCursor(0,50); //6列目
   display.println("out");  //この中に変数名を入力
