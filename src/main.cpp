@@ -82,6 +82,7 @@ float RA_size = 80;
 float goDir = 0;
 int A20_flag = 0;
 int Back_flag = 0;
+int AC_flag = 0;
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
 
@@ -143,7 +144,7 @@ void loop(){
       int ac_val = ac.getAC_val();
       goDir = go_ang.degree;
       OLED_moving();
-      MOTER.moveMoter(go_ang,80,ac_val,0,line);  //後ろに下がるよ
+      MOTER.moveMoter(go_ang,150,ac_val,0,line);  //後ろに下がるよ
       int line_flag = line.getLINE_Vec();
 
       if(line_flag == 1){  //ラインに当たったら抜けるよ
@@ -201,18 +202,9 @@ void loop(){
     go_ang.to_range(180,true);  //進む角度を-180 ~ 180の範囲に収める
 
 
-    if(160 < abs(go_ang.degree)){
+    if(110 < abs(go_ang.degree)){
       goval = 0;
       stop_flag = 999;
-      B_BA = 0;
-    }
-    else if(120 < abs(go_ang.degree)){
-      goval = 50;
-      MOTER.line_val = 2;
-      B_BA = 0;
-    }
-    else if(abs(go_ang.degree) < 60){
-      MOTER.line_val = 2;
       B_BA = 0;
     }
     else{
@@ -241,9 +233,9 @@ void loop(){
         Timer_sentor.reset();  //ここに入ったらタイマースタートするよ
       }
 
-      if(5000 < Timer_sentor.read_ms()){
-        A = 40;  //7秒続けてボールが前にあったら前進するよ
-      }
+      // if(5000 < Timer_sentor.read_ms()){
+      //   A = 40;  //7秒続けてボールが前にあったら前進するよ
+      // }
     }
     else{
       A_sentor = 0;
@@ -256,7 +248,7 @@ void loop(){
   }
 
   if(A == 40){  //ボールが前にあるから前進するよ
-    goval = 100;
+    goval = 150;
 
     if(abs(ball.ang) < 25){
       if(ball.ang < -15){
@@ -303,6 +295,7 @@ void loop(){
     toogle = digitalRead(Toggle_Switch);
     OLED();
   }
+  AC_flag = ac_flag;
 }
 
 
@@ -1349,9 +1342,9 @@ void OLED_moving(){
   display.println(gb[1]);    //この中に知りたい変数を入力
 
   display.setCursor(0,50); //6列目
-  display.println("out");  //この中に変数名を入力
+  display.println("acf");  //この中に変数名を入力
   display.setCursor(30,50);
   display.println(":");
   display.setCursor(36,50);
-  display.println(OutB_flag);  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ));    //この中に知りたい変数を入力
+  display.println(AC_flag);  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ));    //この中に知りたい変数を入力
 }
