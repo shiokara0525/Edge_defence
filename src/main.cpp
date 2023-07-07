@@ -53,6 +53,7 @@ timer Timer_sentor;
 moter MOTER;
 us US;
 timer timer_OLED; //タイマーの宣言(OLED用)
+timer Timer_dog;  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ)
 timer timer_BA;
 
 int A = 0;  //どのチャプターに移動するかを決める変数
@@ -137,6 +138,8 @@ void loop(){
 
     while(1){
       int ac_val = ac.getAC_val();
+      goDir = go_ang.degree;
+      OLED_moving();
       MOTER.moveMoter(go_ang,100,ac_val,0,line);  //後ろに下がるよ
       int line_flag = line.getLINE_Vec();
 
@@ -194,31 +197,41 @@ void loop(){
     if(160 < abs(go_ang.degree)){
       goval = 0;
       stop_flag = 999;
+      B_BA = 0;
     }
     else if(120 < abs(go_ang.degree)){
       goval = 50;
-      MOTER.line_val = 5;
+      MOTER.line_val = 3;
+      B_BA = 0;
     }
     else if(abs(go_ang.degree) < 60){
-      MOTER.line_val = 5;
+      MOTER.line_val = 3;
+      B_BA = 0;
     }
     else{
-      MOTER.line_val = 0.75;
+      if(B_BA != 1){
+        B_BA = 1;
+        timer_BA.reset();
+      }
+      MOTER.line_val = 0.6;
+      if(100 < timer_BA.read_ms()){
+        goval -= 40;
+      }
     }  //進む方向から、スピードとかを決めてるよ
     A = 50;
     gb[0] = go_border[0];
     gb[1] = go_border[1];
 
-    if(abs(ball.ang) < 25){  //前にボールがあるとき
+    if(abs(ball.ang) < 30){  //前にボールがあるとき
       A_sentor = 1;
       if(A_sentor != B_sentor){
         B_sentor = A_sentor;
         Timer_sentor.reset();  //ここに入ったらタイマースタートするよ
       }
 
-      // if(7000 < Timer_sentor.read_ms()){
-      //   A = 40;  //7秒続けてボールが前にあったら前進するよ
-      // }
+      if(5000 < Timer_sentor.read_ms()){
+        A = 40;  //7秒続けてボールが前にあったら前進するよ
+      }
     }
     else{
       A_sentor = 0;
@@ -231,42 +244,35 @@ void loop(){
   }
 
   if(A == 40){  //ボールが前にあるから前進するよ
-    goval = 160;
+    goval = 100;
 
     if(abs(ball.ang) < 25){
-      timer Timer_dog;  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ)
       Timer_dog.reset();
 
-      while(Timer_dog.read_ms() < 300){  //0.9秒前進するよ
+      while(Timer_dog.read_ms() < 1000){  //0.9秒前進するよ
         float ac_val = ac.getAC_val();
         ball.getBallposition();
         go_ang = ball.ang;
         MOTER.moveMoter(go_ang,goval,ac_val,0,line);
+        OLED_moving();
         if(30 < abs(ball.ang)){  //前にボールがなくなったらすぐ戻るよ
-          break;
-        }
-      }
-
-      while(1){
-        int line_flag = line.getLINE_Vec();
-
-        if(5000 < Timer_dog.read_ms() || line_flag == 1){
           break;
         }
       }
     }
     goval = 80;
+    OutB_flag = 999;
     A = 15;
   }
 
   if(A == 50){
-    // if(ac_flag == 0){
-    //   MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
-    // }
-    // else{
-    //   MOTER.moter_ac(AC_val);
-    // }
-    OLED_moving();
+    if(ac_flag == 0){
+      MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
+    }
+    else{
+      MOTER.moter_ac(AC_val);
+    }
+    //OLED_moving();
     
     A = 10;
     goDir = go_ang.degree;
@@ -1316,16 +1322,16 @@ void OLED_moving(){
   display.println(lFla);    //この中に知りたい変数を入力
 
   display.setCursor(0,40); //5列目
-  display.println("x");  //この中に変数名を入力
+  display.println("Lr");  //この中に変数名を入力
   display.setCursor(30,40);
   display.println(":");
   display.setCursor(36,40);
-  display.println();    //この中に知りたい変数を入力
+  display.println(line.Lrange_num);    //この中に知りたい変数を入力
 
   display.setCursor(0,50); //6列目
-  display.println("y");  //この中に変数名を入力
+  display.println("timer");  //この中に変数名を入力
   display.setCursor(30,50);
   display.println(":");
   display.setCursor(36,50);
-  display.println();    //この中に知りたい変数を入力
+  display.println(Timer_dog.read_ms());  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ));    //この中に知りたい変数を入力
 }

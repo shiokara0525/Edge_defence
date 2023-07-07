@@ -96,18 +96,25 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
     {
       data_ave[i] = 0; //ラインセンサの値を0(ライン上にいない)にする
     }
-    
-    Serial.print(data_sum[i]);
-    Serial.print(" ");
-    // Serial.print(Lnone);
 
     data_sum[i] = 0; //合計値をリセット
     Lnone = 0; //ラインセンサの上にラインがあるということを数えるをリセット(一つのセンサごとに)
   }
+  
+
+  // data_ave[2] = 0;
+  // data_ave[3] = 0;
+
+  // data_ave[17] = 0;
+  // data_ave[18] = 0;
+
+  for(int i=0; i<24; i++) //24個のラインセンサを指定する
+  {
+    Serial.print(data_ave[i]);
+    Serial.print(" ");
+  }
   Serial.println();
-  // data_ave[4] = 0;
-  // data_ave[8] = 0;
-  // data_ave[20] = 0;
+
   int F = 0;
   for(int i = 0; i < 24; i++){
     if(data_ave[i] == 0){
