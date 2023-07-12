@@ -11,10 +11,13 @@ void LINE::setup() {
 
   for (int i=0; i<24; i++) //ラインの座標を配列に入れる・ラインセンサ
   {
+
     Lrad = PI / 12 * i; //ラインセンサのラジアンを計算
     LINE_X[i] = cos(Lrad); //ラインセンサのX座標を求める
     LINE_Y[i] = sin(Lrad); //ラインセンサのY座標を求める
-    Lsencer_Dir[i] = 15.0 * i; //ラインセンサの角度を求める
+    angle Ldir(Lsencer_Dir[i],true);
+    Ldir.to_range(180,true);
+    Lsencer_Dir[i] = Ldir.degree;
   }
   digitalWrite(LINE_light,HIGH);
 }
