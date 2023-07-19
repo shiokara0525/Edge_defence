@@ -47,10 +47,7 @@ int B_sentor = 999;
 int A_BA = 0;
 int B_BA = 0;
 
-const int stop_range[2]= {10,20};
-double goval_a;
-
-int OutB_flag = 0;  //ロボットが復帰するときに右側におかれるか左側におかれるかを表示する変数(0が右 1が左 999がなし)(デフォルトは999)
+const int stop_range = 10;
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
 
@@ -63,7 +60,6 @@ void setup(){
   ac.setup();  //正面方向決定(その他姿勢制御関連のセットアップ)(ただ通信を成功させときたいだけ)
   line.setup();  //ラインとかのセットアップ
   OLED.OLED();
-  goval_a = val_max / (stop_range[1] - stop_range[0]);
   A = 10;
 }
 
@@ -186,7 +182,7 @@ void loop(){
         timer_BA.reset();
       }
       for(int i = 0; i < 2; i++){
-        if((go_border[i] - stop_range[0] < ball.ang && ball.ang < go_border[i] + stop_range[0])){  //正面方向にボールがあったら停止するよ
+        if((go_border[i] - stop_range < ball.ang && ball.ang < go_border[i] + stop_range)){  //正面方向にボールがあったら停止するよ
           ac_flag = 1;
         }
       }

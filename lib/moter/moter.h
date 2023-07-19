@@ -1,3 +1,5 @@
+#pragma once
+
 #include<angle.h>
 #include<MA.h>
 #include<line.h>
