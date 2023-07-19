@@ -6,8 +6,7 @@
 #include<timer.h>
 #include<angle.h>
 #include<MA.h>
-#include<moter.h>
-#include<US.h>
+#include<motor_d.h>
 #include<OLED_d.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -31,11 +30,10 @@ void OLED_moving();
 BALL ball;  //ボールのオブジェクトだよ(基本的にボールの位置取得は全部ここ)
 AC ac;      //姿勢制御のオブジェクトだよ(基本的に姿勢制御は全部ここ)
 LINE line;  //ラインのオブジェクトだよ(基本的にラインの判定は全部ここ)
-timer Timer_sentor;
-moter MOTER;
+motor_deffence MOTER;
 oled_deffence OLED;
 timer Timer_dog;  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ)
-timer timer_BA;
+timer Timer_sentor;
 
 int A = 0;  //どのチャプターに移動するかを決める変数
 
@@ -43,9 +41,6 @@ int A = 0;  //どのチャプターに移動するかを決める変数
 
 int A_sentor = 0;
 int B_sentor = 999;
-
-int A_BA = 0;
-int B_BA = 0;
 
 const int stop_range = 10;
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
@@ -70,7 +65,7 @@ void loop(){
   double AC_val = 0;  //姿勢制御の最終的な値を入れるグローバル変数
   angle go_ang(0,true);  //進む角度だぜいえいえ
   int goval = val_max;  //進む速度だぜいえいえ
-  int stop_flag = 5;  //ライン踏んでるときどんな進み方をするか決めるぜ
+  int stop_flag = 0;  //ライン踏んでるときどんな進み方をするか決めるぜ
   int Line_flag = 0;  //ライン踏んでるか踏んでないかを判定する変数
   int ac_flag = 0;
 
@@ -105,7 +100,7 @@ void loop(){
       int ac_val = ac.getAC_val();
       goDir = go_ang.degree;
       OLED_moving();
-      MOTER.moveMoter(go_ang,80,ac_val,0,line);  //後ろに下がるよ
+      MOTER.moveMoter_0(go_ang,80,ac_val);  //後ろに下がるよ
       int line_flag = line.getLINE_Vec();
 
       if(line_flag == 1){  //ラインに当たったら抜けるよ
@@ -121,8 +116,6 @@ void loop(){
         A = 10;
       }
     }
-    Timer_sentor.reset();
-
     OutB_flag = 999;
     A = 30;
   }
@@ -162,35 +155,25 @@ void loop(){
     go_ang.to_range(180,true);  //進む角度を-180 ~ 180の範囲に収める
 
 
-    if(160 < abs(go_ang.degree)){
+    if(160 < abs(go_ang.degree)){       //進む角度が真後ろにあるとき
       goval = 0;
-      stop_flag = 999;
-      B_BA = 0;
+      stop_flag = 1;
     }
-    else if(120 < abs(go_ang.degree)){
+    else if(120 < abs(go_ang.degree)){  //進む角度が後ろめな時
       goval = 50;
       MOTER.line_val = 2;
-      B_BA = 0;
     }
-    else if(abs(go_ang.degree) < 60){
+    else if(abs(go_ang.degree) < 60){  //前めに進むとき
       MOTER.line_val = 2;
-      B_BA = 0;
     }
-    else{
-      if(B_BA != 1){
-        B_BA = 1;
-        timer_BA.reset();
-      }
+    else{                              //横に進むとき
       for(int i = 0; i < 2; i++){
         if((go_border[i] - stop_range < ball.ang && ball.ang < go_border[i] + stop_range)){  //正面方向にボールがあったら停止するよ
           ac_flag = 1;
         }
       }
       MOTER.line_val = 0.8;
-      if(100 < timer_BA.read_ms()){
-        goval -= 35;
-      }
-    }  //進む方向から、スピードとかを決めてるよ
+    }
     A = 50;
 
     if(abs(ball.ang) < 30){  //前にボールがあるとき
@@ -211,7 +194,6 @@ void loop(){
         Timer_sentor.reset();  //前から外れたらリセットするよ
       }
     }
-    
   }
 
   if(A == 40){  //ボールが前にあるから前進するよ
@@ -232,9 +214,9 @@ void loop(){
       while(Timer_dog.read_ms() < 700){  //0.9秒前進するよ
         float ac_val = ac.getAC_val();
         ball.getBallposition();
+
         go_ang = ball.ang;
-        MOTER.moveMoter(go_ang,goval,ac_val,0,line);
-        OLED_moving();
+        MOTER.moveMoter_0(go_ang,goval,ac_val);
         if(25 < abs(ball.ang)){  //前にボールがなくなったらすぐ戻るよ
           break;
         }
@@ -245,14 +227,19 @@ void loop(){
   }
 
   if(A == 50){
-    if(ac_flag == 0){
-      MOTER.moveMoter(go_ang,goval,AC_val,stop_flag,line);
+    if(stop_flag == 0){
+      if(ac_flag == 0){
+        MOTER.moveMoter_l(go_ang,goval,AC_val,line);
+      }
+      else{
+        MOTER.moter_ac(AC_val);
+      }
     }
     else{
-      MOTER.moter_ac(AC_val);
+      MOTER.moter_0();
     }
     OLED_moving();
-    
+
     A = 10;
     goDir = go_ang.degree;
   }

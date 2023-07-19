@@ -9,12 +9,12 @@
 #include<line.h>
 #include<ball.h>
 #include<ac.h>
-#include<moter.h>
+#include<motor_d.h>
 
 extern AC ac;
 extern BALL ball;
 extern LINE line;
-extern moter MOTOR;
+extern motor_deffence MOTOR;
 extern int RA_size;
 extern int val_max;
 extern int OutB_flag;
