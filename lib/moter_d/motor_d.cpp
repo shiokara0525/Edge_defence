@@ -13,7 +13,7 @@ motor_deffence::motor_deffence(){
 
 
 
-void motor_deffence::moveMoter_l(angle ang,int val,double ac_val,LINE line){  //モーター制御する関数
+void motor_deffence::moveMotor_l(angle ang,int val,double ac_val,LINE line){  //モーター制御する関数
   double g = 0;                //モーターの最終的に出る最終的な値の比の基準になる値
   double h = 0;
   double Mval[4] = {0,0,0,0};  //モーターの値×4
@@ -43,33 +43,12 @@ void motor_deffence::moveMoter_l(angle ang,int val,double ac_val,LINE line){  //
 
   for(int i = 0; i < 4; i++){  //モーターの値を計算するところだよ
     Mval[i] = Mval[i] / h * max_val + ac_val;  //モーターの値を計算(進みたいベクトルの値と姿勢制御の値を合わせる)
-    Val[i] = Mval[i];
-    
-
-    for(int i = 0; i < 4; i++){
-      if(i == 0 || i == 1 || i == 2){
-        if(Mval[i] < 0){
-          digitalWrite(pah[i],LOW);
-        }
-        else{
-          digitalWrite(pah[i],HIGH);
-        }
-      }
-      else{
-        if(Mval[i] < 0){
-          digitalWrite(pah[i],HIGH);
-        }
-        else{
-          digitalWrite(pah[i],LOW);
-        }
-      }
-      analogWrite(ena[i],abs(Mval[i]));
-    }
+    Moutput(i,Mval[i]);
   }
 }
 
 
-void motor_deffence::moveMoter_0(angle ang,int val,double ac_val){
+void motor_deffence::moveMotor_0(angle ang,int val,double ac_val){
   double g = 0;                //モーターの最終的に出る最終的な値の比の基準になる値
   double h = 0;
   double Mval[4] = {0,0,0,0};  //モーターの値×4
@@ -98,58 +77,46 @@ void motor_deffence::moveMoter_0(angle ang,int val,double ac_val){
   }
 
   for(int i = 0; i < 4; i++){  //モーターの値を計算するところだよ
-    
     Mval[i] = Mval[i] / h * max_val + ac_val;  //モーターの値を計算(進みたいベクトルの値と姿勢制御の値を合わせる)
-
-    if(i == 0 || i == 1 || i == 2){
-      if(0 < Mval[i]){            //モーターの回転方向が正の時
-        digitalWrite(pah[i] , LOW);    //モーターの回転方向を正にする
-      }
-      else{  //モーターの回転方向が負の時
-        digitalWrite(pah[i] , HIGH);     //モーターの回転方向を負にする
-      }
-    }
-    else{
-      if(0 < Mval[i]){            //モーターの回転方向が正の時
-        digitalWrite(pah[i] , HIGH);    //モーターの回転方向を正にする
-      }
-      else{  //モーターの回転方向が負の時
-        digitalWrite(pah[i] , LOW);     //モーターの回転方向を負にする
-      }
-    }
-    analogWrite(ena[i] , abs(Mval[i])); //モーターの回転速度を設定
-
+    Moutput(i,Mval[i]);
   }
 }
 
 
-void motor_deffence::moter_ac(float ac_val){
+void motor_deffence::motor_ac(float ac_val){
   for(int i = 0; i < 4; i++){
-    if(i == 0 || i == 1 || i == 2){
-      if(ac_val < 0){
-        digitalWrite(pah[i],LOW);
-      }
-      else{
-        digitalWrite(pah[i],HIGH);
-      }
-    }
-    else{
-      if(ac_val < 0){
-        digitalWrite(pah[i],HIGH);
-      }
-      else{
-        digitalWrite(pah[i],LOW);
-      }
-    }
-    analogWrite(ena[i],abs(ac_val));
+    Moutput(i,ac_val);
   }
 }
 
 
-void motor_deffence::moter_0(){  //モーターの値を0にする関数
+void motor_deffence::motor_0(){  //モーターの値を0にする関数
   for(int i = 0; i < 4; i++){
     digitalWrite(pah[i],LOW);
     analogWrite(ena[i],0);
     Motor[i].reset();
   }
+}
+
+
+
+float motor_deffence::Moutput(int i,float Mval){
+  if(i == 1 || i == 3){
+    if(0 < Mval){            //モーターの回転方向が正の時
+      digitalWrite(pah[i] , LOW);    //モーターの回転方向を正にする
+    }
+    else{  //モーターの回転方向が負の時
+      digitalWrite(pah[i] , HIGH);     //モーターの回転方向を負にする
+    }
+  }
+  else{
+    if(0 < Mval){            //モーターの回転方向が正の時
+      digitalWrite(pah[i] , HIGH);    //モーターの回転方向を正にする
+    }
+    else{  //モーターの回転方向が負の時
+      digitalWrite(pah[i] , LOW);     //モーターの回転方向を負にする
+    }
+  }
+  analogWrite(ena[i] , abs(Mval)); //モーターの回転速度を設定
+  return Mval;
 }

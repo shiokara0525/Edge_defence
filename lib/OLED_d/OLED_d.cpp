@@ -16,6 +16,18 @@ oled_deffence::oled_deffence(){
     Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
+  pinMode(Tact_Switch,INPUT);
+  pinMode(Toggle_Switch,INPUT);
+}
+
+
+
+void oled_deffence::startOLED(){
+  if(digitalRead(Tact_Switch) == LOW){
+    MOTOR.motor_0();
+    toogle = digitalRead(Toggle_Switch);
+    OLED();
+  }
 }
 
 
@@ -574,8 +586,8 @@ void oled_deffence::OLED(){
       display.drawCircle(32, 32, 20, WHITE);  //○ 20
 
       //ラインの直線と円の交点の座標を求める
-      line_x = line.Lvec_Long * cos(line.Lrad);  //ラインのx座標
-      line_y = line.Lvec_Long * sin(line.Lrad);  //ラインのy座標
+      line_x = line.dis * cos(line.Lrad);  //ラインのx座標
+      line_y = line.dis * sin(line.Lrad);  //ラインのy座標
 
       b = line_y - tan(line.Lrad) * line_x;  //y = tanΘx + b の解の公式のb
 
@@ -613,7 +625,7 @@ void oled_deffence::OLED(){
       display.println("Dir:");
       if(line.LINE_on == 1){  //ラインがロボットの下にある
         display.setCursor(96,25);
-        display.println(int(line.Lvec_Dir));
+        display.println(int(line.ang));
       }
       else{  //ラインがロボットの下にない
         display.fillRect(96, 25, 34, 10, WHITE);
@@ -624,7 +636,7 @@ void oled_deffence::OLED(){
       display.println("far:");
       if(line.LINE_on == 1){  //ラインがロボットの下にある
         display.setCursor(96,39);
-        display.println(line.Lvec_Long);
+        display.println(line.dis);
       }
       else{  //ラインがロボットの下にない
         display.fillRect(96, 39, 34, 10, WHITE);

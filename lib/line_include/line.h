@@ -2,7 +2,8 @@
 
 #include <timer.h>
 #include <Arduino.h>
-#include<angle.h>
+#include <angle.h>
+#define Long 5
 
 class LINE{
 public:
@@ -12,12 +13,13 @@ public:
     int switchLineflag(angle);
     float decideGoang(angle,int);
 
-    double Lvec_Long; //ラインのベクトルの長さ
-    double Lvec_Long_move; //ラインのベクトルの長さの移動量
-    double Lvec_Dir_move; //ラインの和のベクトルの角度の移動量
-    double Lvec_Dir; //ラインの和のベクトルの角度
-    int Lrange_num = 0; //ラインの範囲を求めるための変数をリセット
-
+    double dis; //ラインのベクトルの長さ
+    double ang; //ラインの和のベクトルの角度
+    double ang_old;
+    float dis_X;
+    float dis_Y;
+    int num;
+ 
     int LINE_on; //ラインがロボットの下になかったら0,あったら1にする
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
     int LINE_Level = 735; //ラインの閾値
@@ -42,8 +44,8 @@ private:
     
 
     double Lsencer_Dir[24]; //ラインセンサの角度
-    double LINE_X[27]; //ラインセンサのX座標
-    double LINE_Y[27]; //ラインセンサのY座標
+    double ele_X[27]; //ラインセンサのX座標
+    double ele_Y[27]; //ラインセンサのY座標
     double Lvec_X_old = 0; //ラインベクトルの初期値を記録する
     double Lvec_Y_old = 0; //ラインベクトルの初期値を記録する
     timer timer1; //タイマーの宣言

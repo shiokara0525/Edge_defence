@@ -8,10 +8,11 @@
 class motor_deffence{
     public:
         motor_deffence();
-        void moveMoter_l(angle ang,int val,double ac_val,LINE line);
-        void moveMoter_0(angle ang,int val,double ac_val);
-        void moter_0();
-        void moter_ac(float);
+        void moveMotor_l(angle ang,int val,double ac_val,LINE line);
+        void moveMotor_0(angle ang,int val,double ac_val);
+        void motor_0();
+        void motor_ac(float);
+        float Moutput(int,float);
         int line_val = 2;
         int Val[4];
     private:

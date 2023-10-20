@@ -15,9 +15,6 @@ extern AC ac;
 extern BALL ball;
 extern LINE line;
 extern motor_deffence MOTOR;
-extern int RA_size;
-extern int val_max;
-extern int OutB_flag;
 
 /*------------------------------------------------------------------------------------------------------------*/
 
@@ -46,9 +43,13 @@ class oled_deffence{
     int goDir;  //loop関数ないしか使えないangle go_ang.degressの値をぶち込んでグローバルに使うために作った税
     oled_deffence();
     void OLED();
+    void startOLED();
     int Button_selectCF = 0;  //コートの方向を決めるときに特殊なことをするので、セレクト変数を変えときますぜよ
+    int RA_size;
+    int val_max;
+    int OutB_flag;
 
-    int Tact_Switch = 15;
+    const int Tact_Switch = 15;
     const int Toggle_Switch = 14;  //スイッチのピン番号
 };
 /*------------------------------------------------------------------------------------------------------------*/

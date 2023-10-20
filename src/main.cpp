@@ -21,6 +21,7 @@ int OutB_flag = 999;
 const int Tact_Switch = 15;
 const int Toggle_Switch = 14;  //スイッチのピン番号
 float goDir = 0;
+int goVal = 0;
 int lFla;
 
 void OLED_moving();
@@ -30,9 +31,8 @@ void OLED_moving();
 BALL ball;  //ボールのオブジェクトだよ(基本的にボールの位置取得は全部ここ)
 AC ac;      //姿勢制御のオブジェクトだよ(基本的に姿勢制御は全部ここ)
 LINE line;  //ラインのオブジェクトだよ(基本的にラインの判定は全部ここ)
-motor_deffence MOTER;
+motor_deffence MOTOR;
 oled_deffence OLED;
-timer Timer_dog;  //ここ限定のタイマーだよ(何秒前進するかとか決めるよ)
 timer Timer_sentor;
 
 int A = 0;  //どのチャプターに移動するかを決める変数
@@ -55,6 +55,7 @@ void setup(){
   ac.setup();  //正面方向決定(その他姿勢制御関連のセットアップ)(ただ通信を成功させときたいだけ)
   line.setup();  //ラインとかのセットアップ
   OLED.OLED();
+  val_max = OLED.val_max;
   A = 10;
 }
 
@@ -65,81 +66,41 @@ void loop(){
   double AC_val = 0;  //姿勢制御の最終的な値を入れるグローバル変数
   angle go_ang(0,true);  //進む角度だぜいえいえ
   int goval = val_max;  //進む速度だぜいえいえ
-  int stop_flag = 0;  //ライン踏んでるときどんな進み方をするか決めるぜ
-  int Line_flag = 0;  //ライン踏んでるか踏んでないかを判定する変数
-  int ac_flag = 0;
 
-  if(A == 10){  //情報入手
-    ball.getBallposition();  //ボールの位置取得
-    AC_val = ac.getAC_val(); //姿勢制御の値入手
-    Line_flag = line.getLINE_Vec();      //ライン踏んでるか踏んでないかを判定
-    lFla = Line_flag;
-    A = 30;
-    if(Line_flag == 0){  //ライン踏んでないとき(ラインを踏んでいるときはAを30にしているのでここには来ない)
-      if(OutB_flag == 1 || OutB_flag == 0){
-        A = 15;  //アウトオブバウンズから復帰するとき
-      }
-      else{
-        A = 20;  //がんばってラインに戻るとき
-      }
-    }
-  }
-
-  if(A == 15){  //アウトオブバウンズから復帰するとき
-    if(OutB_flag == 0){
-      go_ang = -165.0;
-    }
-    else if(OutB_flag == 1){
-      go_ang = 165.0;
+  if(A == 10){
+    ball.getBallposition();
+    line.getLINE_Vec();
+    AC_val = ac.getAC_val();
+    
+    if(line.LINE_on == 1){
+      A = 20;
     }
     else{
-      go_ang = 179.9;
+      A = 15;
     }
-
-    while(1){
-      int ac_val = ac.getAC_val();
-      goDir = go_ang.degree;
-      OLED_moving();
-      MOTER.moveMoter_0(go_ang,80,ac_val);  //後ろに下がるよ
-      int line_flag = line.getLINE_Vec();
-
-      if(line_flag == 1){  //ラインに当たったら抜けるよ
-        Timer_sentor.reset();
-        MOTER.moter_0();
-        delay(50);
-        if(line_flag == 1){
-          break;
-        }
-      }
-
-      if(digitalReadFast(Tact_Switch) == LOW){
-        A = 10;
-      }
-    }
-    OutB_flag = 999;
-    A = 30;
   }
 
-  if(A == 20){  //ラインに戻るとき
-    go_ang = line.Lvec_Dir;
+  if(A == 15){
+    go_ang = line.ang_old;
+
     A = 50;
   }
 
-  if(A == 30){  //ライン踏んでるとき(ライントレース)
+  if(A == 20){  //ライン踏んでるとき(ライントレース)
     int go_flag = 0;
     double go_border[2];  //ボールの角度によって進む方向を変えるためのボーダーの変数(ラインに対して垂直な直線で進む角度の区分を分けるイメージ)
     angle balldir(ball.ang,true);  //ボールの角度を入れるオブジェクト
-    if(2 < line.Lrange_num){
-      line.Lvec_Dir = 90;
+    if(2 < line.num){
+      line.ang = 90;
     }
 
-    if(line.Lvec_Dir < 0){
-      go_border[0] = line.Lvec_Dir;
-      go_border[1] = line.Lvec_Dir + 180;
+    if(line.ang < 0){
+      go_border[0] = line.ang;
+      go_border[1] = line.ang + 180;
     }
     else{
-      go_border[0] = line.Lvec_Dir - 180;
-      go_border[1] = line.Lvec_Dir;
+      go_border[0] = line.ang - 180;
+      go_border[1] = line.ang;
     }
 
     balldir.to_range(go_border[0],false);  //ボールの角度をボーダーの範囲に収める(go_border[0] ~ go_border[1]+180)
@@ -155,100 +116,35 @@ void loop(){
     go_ang.to_range(180,true);  //進む角度を-180 ~ 180の範囲に収める
 
 
-    if(160 < abs(go_ang.degree)){       //進む角度が真後ろにあるとき
-      goval = 0;
-      stop_flag = 1;
-    }
-    else if(120 < abs(go_ang.degree)){  //進む角度が後ろめな時
-      goval = 50;
-      MOTER.line_val = 2;
-    }
-    else if(abs(go_ang.degree) < 60){  //前めに進むとき
-      MOTER.line_val = 2;
-    }
-    else{                              //横に進むとき
-      for(int i = 0; i < 2; i++){
-        if((go_border[i] - stop_range < ball.ang && ball.ang < go_border[i] + stop_range)){  //正面方向にボールがあったら停止するよ
-          ac_flag = 1;
-        }
-      }
-      MOTER.line_val = 0.8;
-    }
+    // if(160 < abs(go_ang.degree)){       //進む角度が真後ろにあるとき
+    //   goval = 0;
+    // }
+    // else if(120 < abs(go_ang.degree)){  //進む角度が後ろめな時
+    //   goval = 50;
+    //   MOTOR.line_val = 2;
+    // }
+    // else if(abs(go_ang.degree) < 60){  //前めに進むとき
+    //   MOTOR.line_val = 2;
+    // }
+    // else{                              //横に進むとき
+    //   for(int i = 0; i < 2; i++){
+    //     if((go_border[i] - stop_range < ball.ang && ball.ang < go_border[i] + stop_range)){  //正面方向にボールがあったら停止するよ
+    //       goval = 0;
+    //     }
+    //   }
+    //   MOTOR.line_val = 0.8;
+    // }
     A = 50;
-
-    if(abs(ball.ang) < 30){  //前にボールがあるとき
-      A_sentor = 1;
-      if(A_sentor != B_sentor){
-        B_sentor = A_sentor;
-        Timer_sentor.reset();  //ここに入ったらタイマースタートするよ
-      }
-
-      if(5000 < Timer_sentor.read_ms()){
-        A = 40;  //7秒続けてボールが前にあったら前進するよ
-      }
-    }
-    else{
-      A_sentor = 0;
-      if(A_sentor != B_sentor){
-        B_sentor = A_sentor;
-        Timer_sentor.reset();  //前から外れたらリセットするよ
-      }
-    }
-  }
-
-  if(A == 40){  //ボールが前にあるから前進するよ
-    goval = 100;
-
-    if(abs(ball.ang) < 25){
-      if(ball.ang < -15){
-        OutB_flag = 1;
-      }
-      else if(15 < ball.ang){
-        OutB_flag = 2;
-      }
-      else{
-        OutB_flag = 999;
-      }
-      Timer_dog.reset();
-
-      while(Timer_dog.read_ms() < 700){  //0.9秒前進するよ
-        float ac_val = ac.getAC_val();
-        ball.getBallposition();
-
-        go_ang = ball.ang;
-        MOTER.moveMoter_0(go_ang,goval,ac_val);
-        if(25 < abs(ball.ang)){  //前にボールがなくなったらすぐ戻るよ
-          break;
-        }
-      }
-    }
-    goval = 80;
-    A = 15;
   }
 
   if(A == 50){
-    if(stop_flag == 0){
-      if(ac_flag == 0){
-        MOTER.moveMoter_l(go_ang,goval,AC_val,line);
-      }
-      else{
-        MOTER.moter_ac(AC_val);
-      }
-    }
-    else{
-      MOTER.moter_0();
-    }
-    OLED_moving();
-
+    MOTOR.moveMotor_l(go_ang,goval,AC_val,line);
     A = 10;
-    goDir = go_ang.degree;
   }
-
-  if(digitalRead(Tact_Switch) == LOW){
-    MOTER.moter_0();
-    OLED.toogle = digitalRead(Toggle_Switch);
-    OLED.OLED();
-  }
+  OLED_moving();
+  OLED.startOLED();
+  goDir = go_ang.degree;
+  goVal = goval;
 }
 
 
@@ -324,21 +220,21 @@ void OLED_moving(){
   OLED.display.setCursor(30,10);
   OLED.display.println(":");
   OLED.display.setCursor(36,10);
-  OLED.display.println();    //この中に知りたい変数を入力
+  OLED.display.println(goDir);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,20); //3列目
-  OLED.display.println("C_x");  //この中に変数名を入力
+  OLED.display.println("goval");  //この中に変数名を入力
   OLED.display.setCursor(30,20);
   OLED.display.println(":");
   OLED.display.setCursor(36,20);
-  OLED.display.println();    //この中に知りたい変数を入力
+  OLED.display.println(goVal);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,30); //4列目
-  OLED.display.println("bcf");  //この中に変数名を入力
+  OLED.display.println("goval");  //この中に変数名を入力
   OLED.display.setCursor(30,30);
   OLED.display.println(":");
   OLED.display.setCursor(36,30);
-  OLED.display.println();    //この中に知りたい変数を入力
+  OLED.display.println(val_max);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,40); //5列目
   OLED.display.println("LF");  //この中に変数名を入力
