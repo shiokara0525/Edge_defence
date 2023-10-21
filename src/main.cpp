@@ -8,10 +8,7 @@
 #include<MA.h>
 #include<motor_d.h>
 #include<OLED_d.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#include <EEPROM.h>
-#include <Encoder.h>
+#include<Cam.h>
 
 /*---------------------------------------------------ディスプレイの宣言-----------------------------------------------------------------------------------*/
 
@@ -31,6 +28,7 @@ void OLED_moving();
 BALL ball;  //ボールのオブジェクトだよ(基本的にボールの位置取得は全部ここ)
 AC ac;      //姿勢制御のオブジェクトだよ(基本的に姿勢制御は全部ここ)
 LINE line;  //ラインのオブジェクトだよ(基本的にラインの判定は全部ここ)
+Cam cam;
 motor_deffence MOTOR;
 oled_deffence OLED;
 timer Timer_sentor;
@@ -116,24 +114,24 @@ void loop(){
     go_ang.to_range(180,true);  //進む角度を-180 ~ 180の範囲に収める
 
 
-    // if(160 < abs(go_ang.degree)){       //進む角度が真後ろにあるとき
-    //   goval = 0;
-    // }
-    // else if(120 < abs(go_ang.degree)){  //進む角度が後ろめな時
-    //   goval = 50;
-    //   MOTOR.line_val = 2;
-    // }
-    // else if(abs(go_ang.degree) < 60){  //前めに進むとき
-    //   MOTOR.line_val = 2;
-    // }
-    // else{                              //横に進むとき
-    //   for(int i = 0; i < 2; i++){
-    //     if((go_border[i] - stop_range < ball.ang && ball.ang < go_border[i] + stop_range)){  //正面方向にボールがあったら停止するよ
-    //       goval = 0;
-    //     }
-    //   }
-    //   MOTOR.line_val = 0.8;
-    // }
+    if(160 < abs(go_ang.degree)){       //進む角度が真後ろにあるとき
+      goval = 0;
+    }
+    else if(120 < abs(go_ang.degree)){  //進む角度が後ろめな時
+      goval = 50;
+      MOTOR.line_val = 2;
+    }
+    else if(abs(go_ang.degree) < 60){  //前めに進むとき
+      MOTOR.line_val = 2;
+    }
+    else{                              //横に進むとき
+      for(int i = 0; i < 2; i++){
+        if((go_border[i] - stop_range < ball.ang && ball.ang < go_border[i] + stop_range)){  //正面方向にボールがあったら停止するよ
+          goval = 0;
+        }
+      }
+      MOTOR.line_val = 1.2;
+    }
     A = 50;
   }
 
@@ -149,6 +147,28 @@ void loop(){
 
 
 /*----------------------------------------------------------------いろいろ関数-----------------------------------------------------------*/
+void serialEvent1(){
+  uint8_t reBuf[4];
+  if(4 < Serial1.available()){
+    for(int i = 0; i < 4; i++){
+      reBuf[i] = Serial1.read();
+    }
+  }
+
+  if(reBuf[0] == 38 && reBuf[3] == 37){
+    if(reBuf[2] == 0){
+      cam.on = 0;
+    }
+    else{
+      cam.on = 1;
+      cam.Size = reBuf[2];
+      cam.ang = reBuf[1] - 30;
+    }
+  }
+}
+
+
+
 
 void serialEvent8(){
   int n;
@@ -223,18 +243,18 @@ void OLED_moving(){
   OLED.display.println(goDir);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,20); //3列目
-  OLED.display.println("goval");  //この中に変数名を入力
+  OLED.display.println("C_ang");  //この中に変数名を入力
   OLED.display.setCursor(30,20);
   OLED.display.println(":");
   OLED.display.setCursor(36,20);
-  OLED.display.println(goVal);    //この中に知りたい変数を入力
+  OLED.display.println(cam.ang);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,30); //4列目
-  OLED.display.println("goval");  //この中に変数名を入力
+  OLED.display.println("C_on");  //この中に変数名を入力
   OLED.display.setCursor(30,30);
   OLED.display.println(":");
   OLED.display.setCursor(36,30);
-  OLED.display.println(val_max);    //この中に知りたい変数を入力
+  OLED.display.println(cam.on);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,40); //5列目
   OLED.display.println("LF");  //この中に変数名を入力
