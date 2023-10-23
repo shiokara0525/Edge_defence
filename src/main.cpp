@@ -9,6 +9,7 @@
 #include<motor_d.h>
 #include<OLED_d.h>
 #include<Cam.h>
+#include<A_B.h>
 
 /*---------------------------------------------------ディスプレイの宣言-----------------------------------------------------------------------------------*/
 
@@ -33,16 +34,12 @@ motor_deffence MOTOR;
 oled_deffence OLED;
 timer Timer_sentor;
 timer Timer_side;
+A_B side(300);
 
 int A = 0;  //どのチャプターに移動するかを決める変数
 
 //上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
 
-int A_sentor = 0;
-int B_sentor = 999;
-
-int A_side = 0;
-int B_side = 999;
 
 const int stop_range = 10;
 
@@ -74,18 +71,18 @@ void loop(){
   int goval = val_max;  //進む速度だぜいえいえ
   flag = 0;
 
-  if(A == 10){
+  if(A == 10){  //ボールを追うのか、ちょっと復帰するのか、だいぶ復帰するのか決める
     ball.getBallposition();
     line.getLINE_Vec();
     AC_val = ac.getAC_val();
-    if(line.LINE_on == 0){
-      A = 12;
+    if(line.LINE_on == 1){
+      A = 20;  //ライン踏んでたらいったんボール追う
     }
     else{
-      A = 20;
+      A = 11;  //ライン踏んでなかったらいったん戻る
     }
 
-    A_side = 0;
+    int A_side = 0;
     if(cam.on == 1 && cam.Size < 40){
       if(70 < abs(line.ang_old) && abs(line.ang_old) < 110){
         A_side = 1;
@@ -96,32 +93,25 @@ void loop(){
         A_side = 2;
       }
     }
-    if(A_side == 0){
-      if(A_side != B_side){
-        B_side = A_side;
-      }
+
+    int s_flag = side.setA(A_side);
+    if(s_flag == 1){
+      A = 12;
     }
-    if(A_side == 1){
-      if(A_side != B_side){
-        B_side = A_side;
-        Timer_side.reset();
-      }
-      if(300 < Timer_side.read_ms()){
-        A = 11;
-      }
-    }
-    if(A_side == 2){
-      if(A_side != B_side){
-        B_side = A_side;
-        Timer_side.reset();
-      }
-      if(300 < Timer_side.read_ms()){
-        A = 13;
-      }
+    else if(s_flag == 2){
+      A = 13;
     }
   }
 
+
   if(A == 11){
+    go_ang = line.ang_old;
+    A = 50;
+    flag = 12;
+  }
+
+
+  if(A == 12){
     flag = 11;
     if(line.getLINE_Vec() == 1){
       while(line.getLINE_Vec()){
@@ -140,11 +130,6 @@ void loop(){
     A = 50;
   }
 
-  if(A == 12){
-    go_ang = line.ang_old;
-    A = 50;
-    flag = 12;
-  }
 
   if(A == 13){
     flag = 13;
@@ -156,6 +141,8 @@ void loop(){
     }
     A = 50;
   }
+
+
   if(A == 20){  //ライン踏んでるとき(ライントレース)
     int go_flag = 0;
     double go_border[2];  //ボールの角度によって進む方向を変えるためのボーダーの変数(ラインに対して垂直な直線で進む角度の区分を分けるイメージ)
