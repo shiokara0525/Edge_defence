@@ -32,6 +32,7 @@ Cam cam;
 motor_deffence MOTOR;
 oled_deffence OLED;
 timer Timer_sentor;
+timer Timer_side;
 
 int A = 0;  //どのチャプターに移動するかを決める変数
 
@@ -39,6 +40,9 @@ int A = 0;  //どのチャプターに移動するかを決める変数
 
 int A_sentor = 0;
 int B_sentor = 999;
+
+int A_side = 0;
+int B_side = 999;
 
 const int stop_range = 10;
 
@@ -74,17 +78,45 @@ void loop(){
     ball.getBallposition();
     line.getLINE_Vec();
     AC_val = ac.getAC_val();
-    if(cam.on == 1 && cam.Size < 30){
-      if(70 < abs(line.ang) && abs(line.ang) < 110){
+    if(line.LINE_on == 0){
+      A = 12;
+    }
+    else{
+      A = 20;
+    }
+
+    A_side = 0;
+    if(cam.on == 1 && cam.Size < 40){
+      if(70 < abs(line.ang_old) && abs(line.ang_old) < 110){
+        A_side = 1;
+      }
+    }
+    else if(cam.on == 0){
+      if(60 < abs(line.ang - 90)){
+        A_side = 2;
+      }
+    }
+    if(A_side == 0){
+      if(A_side != B_side){
+        B_side = A_side;
+      }
+    }
+    if(A_side == 1){
+      if(A_side != B_side){
+        B_side = A_side;
+        Timer_side.reset();
+      }
+      if(300 < Timer_side.read_ms()){
         A = 11;
       }
     }
-    else{
-      if(line.LINE_on == 1){
-        A = 20;
+    if(A_side == 2){
+      if(A_side != B_side){
+        B_side = A_side;
+        Timer_side.reset();
       }
-      else{
-        A = 12;
+      if(300 < Timer_side.read_ms()){
+        A = 13;
       }
     }
   }
@@ -101,7 +133,7 @@ void loop(){
     }
     while(!line.getLINE_Vec()){
       go_ang = 180 + cam.ang;
-      MOTOR.moveMotor_0(go_ang,80,ac.getAC_val());
+      MOTOR.moveMotor_0(go_ang,110,ac.getAC_val());
       goDir = go_ang.degree;
       OLED_moving();
     }
@@ -114,6 +146,16 @@ void loop(){
     flag = 12;
   }
 
+  if(A == 13){
+    flag = 13;
+    if(cam.LR == 0){
+      go_ang = -90;
+    }
+    else if(cam.LR == 1){
+      go_ang = 90;
+    }
+    A = 50;
+  }
   if(A == 20){  //ライン踏んでるとき(ライントレース)
     int go_flag = 0;
     double go_border[2];  //ボールの角度によって進む方向を変えるためのボーダーの変数(ラインに対して垂直な直線で進む角度の区分を分けるイメージ)
@@ -199,6 +241,13 @@ void serialEvent1(){
       cam.Size = reBuf[2];
       cam.ang = reBuf[1] - 30;
     }
+  }
+
+  if(cam.ang < 0){
+    cam.LR = 1;
+  }
+  else{
+    cam.LR = 0;
   }
 }
 

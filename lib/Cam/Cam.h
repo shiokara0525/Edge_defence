@@ -10,6 +10,7 @@ class Cam{
     public:
         Cam();
         float ang;
+        int LR = 0;
         float Size;
         void print();
         float P = 0;
