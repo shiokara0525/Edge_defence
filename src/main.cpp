@@ -41,6 +41,10 @@ int A_sentor = 0;
 int B_sentor = 999;
 
 const int stop_range = 10;
+
+int cam_LR = 0; //ロボットが右側にいたら0、左側にいたら1
+int flag = 0;
+int count = 0;
 /*------------------------------------------------------実際に動くやつら-------------------------------------------------------------------*/
 
 
@@ -64,24 +68,50 @@ void loop(){
   double AC_val = 0;  //姿勢制御の最終的な値を入れるグローバル変数
   angle go_ang(0,true);  //進む角度だぜいえいえ
   int goval = val_max;  //進む速度だぜいえいえ
+  flag = 0;
 
   if(A == 10){
     ball.getBallposition();
     line.getLINE_Vec();
     AC_val = ac.getAC_val();
-    
-    if(line.LINE_on == 1){
-      A = 20;
+    if(cam.on == 1 && cam.Size < 30){
+      if(70 < abs(line.ang) && abs(line.ang) < 110){
+        A = 11;
+      }
     }
     else{
-      A = 15;
+      if(line.LINE_on == 1){
+        A = 20;
+      }
+      else{
+        A = 12;
+      }
     }
   }
 
-  if(A == 15){
-    go_ang = line.ang_old;
-
+  if(A == 11){
+    flag = 11;
+    if(line.getLINE_Vec() == 1){
+      while(line.getLINE_Vec()){
+        go_ang = 180 + cam.ang;
+        MOTOR.moveMotor_0(go_ang,100,ac.getAC_val());
+        goDir = go_ang.degree;
+        OLED_moving();
+      }
+    }
+    while(!line.getLINE_Vec()){
+      go_ang = 180 + cam.ang;
+      MOTOR.moveMotor_0(go_ang,80,ac.getAC_val());
+      goDir = go_ang.degree;
+      OLED_moving();
+    }
     A = 50;
+  }
+
+  if(A == 12){
+    go_ang = line.ang_old;
+    A = 50;
+    flag = 12;
   }
 
   if(A == 20){  //ライン踏んでるとき(ライントレース)
@@ -133,6 +163,7 @@ void loop(){
       MOTOR.line_val = 1.2;
     }
     A = 50;
+    flag = 20;
   }
 
   if(A == 50){
@@ -148,10 +179,14 @@ void loop(){
 
 /*----------------------------------------------------------------いろいろ関数-----------------------------------------------------------*/
 void serialEvent1(){
+  count++;
   uint8_t reBuf[4];
-  if(4 < Serial1.available()){
+  if(4 <= Serial1.available()){
     for(int i = 0; i < 4; i++){
       reBuf[i] = Serial1.read();
+    }
+    while(Serial1.available()){
+      Serial1.read();
     }
   }
 
@@ -229,11 +264,11 @@ void OLED_moving(){
   OLED.display.setTextColor(WHITE);
   
   OLED.display.setCursor(0,0);  //1列目
-  OLED.display.println("Bang");  //現在向いてる角度
+  OLED.display.println("flag");  //現在向いてる角度
   OLED.display.setCursor(30,0);
   OLED.display.println(":");
   OLED.display.setCursor(36,0);
-  OLED.display.println(ball.ang);    //現在向いてる角度を表示
+  OLED.display.println(flag);    //現在向いてる角度を表示
 
   OLED.display.setCursor(0,10);  //2列目
   OLED.display.println("goang");  //この中に変数名を入力
@@ -257,11 +292,11 @@ void OLED_moving(){
   OLED.display.println(cam.on);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,40); //5列目
-  OLED.display.println("LF");  //この中に変数名を入力
+  OLED.display.println("C_s");  //この中に変数名を入力
   OLED.display.setCursor(30,40);
   OLED.display.println(":");
   OLED.display.setCursor(36,40);
-  OLED.display.println(line.LINE_on);    //この中に知りたい変数を入力
+  OLED.display.println(cam.Size);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,50); //6列目
   OLED.display.println("A");  //この中に変数名を入力
@@ -269,4 +304,6 @@ void OLED_moving(){
   OLED.display.println(":");
   OLED.display.setCursor(36,50);
   OLED.display.println(A);    //この中に知りたい変数を入力
+
+  OLED.startOLED();
 }

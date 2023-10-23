@@ -513,6 +513,7 @@ void oled_deffence::OLED(){
         display.clearDisplay(); //初期化してI2Cバスを解放する
         break;
       }
+      break;
     }
     else if(A_OLED == 20)  //Set Line
     {
