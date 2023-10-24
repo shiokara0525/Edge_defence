@@ -41,7 +41,8 @@ int A = 0;  //どのチャプターに移動するかを決める変数
 //上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
 
 
-const int stop_range = 10;
+int stop_range = 10;
+int P_range = 30;
 
 int cam_LR = 0; //ロボットが右側にいたら0、左側にいたら1
 int flag = 0;
@@ -185,11 +186,15 @@ void loop(){
     }
     else{                              //横に進むとき
       for(int i = 0; i < 2; i++){
-        if((go_border[i] - stop_range < ball.ang && ball.ang < go_border[i] + stop_range)){  //正面方向にボールがあったら停止するよ
+        int dif_val = abs(ball.ang - go_border[i]);
+        if(dif_val < stop_range){  //正面方向にボールがあったら停止するよ
           goval = 0;
         }
+        else if(dif_val < P_range){
+          goval = val_max / (P_range - stop_range) * (dif_val - stop_range);
+        }
       }
-      MOTOR.line_val = 1.2;
+      MOTOR.line_val = 0.8;
     }
     A = 50;
     flag = 20;
