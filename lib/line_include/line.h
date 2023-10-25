@@ -24,9 +24,6 @@ public:
     const int LINE_light = 27; //ラインセンサのLEDを光らせるかの制御をするためのピン
     int LINE_Level = 735; //ラインの閾値
     double Lrad; //ラインの角度のラジアン
-    double Lvec_X = 0; //ラインセンサのX座標の和のベクトル
-    double Lvec_Y = 0; //ラインセンサのY座標の和のベクトル
-    int line_flag = 0;
 
 private:
     const int LINE_1 = 23; //ラインセンサIC1の出力を読み取るためのピン
@@ -41,12 +38,7 @@ private:
     const int Lread[3] = {LINE_1, LINE_2, LINE_3}; //ラインセンサICの出力を読み取るためのピンを配列に格納
     double PI = 3.1415926535897932384626; //円周率
 
-    
-
     double Lsencer_Dir[24]; //ラインセンサの角度
     double ele_X[27]; //ラインセンサのX座標
     double ele_Y[27]; //ラインセンサのY座標
-    double Lvec_X_old = 0; //ラインベクトルの初期値を記録する
-    double Lvec_Y_old = 0; //ラインベクトルの初期値を記録する
-    timer timer1; //タイマーの宣言
 };

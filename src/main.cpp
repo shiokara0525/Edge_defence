@@ -41,8 +41,8 @@ int A = 0;  //どのチャプターに移動するかを決める変数
 //上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
 
 
-int stop_range = 10;
-int P_range = 30;
+int stop_range = 5;
+int P_range = 20;
 
 int cam_LR = 0; //ロボットが右側にいたら0、左側にいたら1
 int flag = 0;
@@ -84,7 +84,7 @@ void loop(){
     }
 
     int A_side = 0;
-    if(cam.on == 1 && cam.Size < 40){
+    if(cam.on == 1 && cam.Size < 30){
       if(70 < abs(line.ang_old) && abs(line.ang_old) < 110){
         A_side = 1;
       }
@@ -108,12 +108,12 @@ void loop(){
   if(A == 11){
     go_ang = line.ang_old;
     A = 50;
-    flag = 12;
+    flag = 11;
   }
 
 
   if(A == 12){
-    flag = 11;
+    flag = 12;
     if(line.getLINE_Vec() == 1){
       while(line.getLINE_Vec()){
         go_ang = 180 + cam.ang;
@@ -185,27 +185,32 @@ void loop(){
       MOTOR.line_val = 2;
     }
     else{                              //横に進むとき
-      for(int i = 0; i < 2; i++){
-        int dif_val = abs(ball.ang - go_border[i]);
-        if(dif_val < stop_range){  //正面方向にボールがあったら停止するよ
-          goval = 0;
-        }
-        else if(dif_val < P_range){
-          goval = val_max / (P_range - stop_range) * (dif_val - stop_range);
-        }
+      MOTOR.line_val = 0.90;
+    }
+    
+    for(int i = 0; i < 2; i++){
+      int dif_val = abs(ball.ang - go_border[i]);
+      if(dif_val < stop_range){  //正面方向にボールがあったら停止するよ
+        goval = 0;
       }
-      MOTOR.line_val = 0.8;
+      else if(dif_val < P_range){
+        goval = val_max / (P_range - stop_range) * (dif_val - stop_range);
+      }
     }
     A = 50;
     flag = 20;
   }
 
   if(A == 50){
-    MOTOR.moveMotor_l(go_ang,goval,AC_val,line);
+    if(flag == 11 || flag == 13){
+      MOTOR.moveMotor_0(go_ang,goval,AC_val);
+    }
+    else{
+      MOTOR.moveMotor_l(go_ang,goval,AC_val,line);
+    }
     A = 10;
   }
   OLED_moving();
-  OLED.startOLED();
   goDir = go_ang.degree;
   goVal = goval;
 }
@@ -312,39 +317,39 @@ void OLED_moving(){
   OLED.display.println(flag);    //現在向いてる角度を表示
 
   OLED.display.setCursor(0,10);  //2列目
-  OLED.display.println("goang");  //この中に変数名を入力
+  OLED.display.println("C_on");  //この中に変数名を入力
   OLED.display.setCursor(30,10);
   OLED.display.println(":");
   OLED.display.setCursor(36,10);
-  OLED.display.println(goDir);    //この中に知りたい変数を入力
+  OLED.display.println(cam.on);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,20); //3列目
-  OLED.display.println("C_ang");  //この中に変数名を入力
+  OLED.display.println("C_s");  //この中に変数名を入力
   OLED.display.setCursor(30,20);
   OLED.display.println(":");
   OLED.display.setCursor(36,20);
-  OLED.display.println(cam.ang);    //この中に知りたい変数を入力
+  OLED.display.println(cam.Size);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,30); //4列目
-  OLED.display.println("C_on");  //この中に変数名を入力
+  OLED.display.println("L_x");  //この中に変数名を入力
   OLED.display.setCursor(30,30);
   OLED.display.println(":");
   OLED.display.setCursor(36,30);
-  OLED.display.println(cam.on);    //この中に知りたい変数を入力
+  OLED.display.println(line.dis_X);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,40); //5列目
-  OLED.display.println("C_s");  //この中に変数名を入力
+  OLED.display.println("L_y");  //この中に変数名を入力
   OLED.display.setCursor(30,40);
   OLED.display.println(":");
   OLED.display.setCursor(36,40);
-  OLED.display.println(cam.Size);    //この中に知りたい変数を入力
+  OLED.display.println(line.dis_Y);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,50); //6列目
-  OLED.display.println("A");  //この中に変数名を入力
+  OLED.display.println("");  //この中に変数名を入力
   OLED.display.setCursor(30,50);
   OLED.display.println(":");
   OLED.display.setCursor(36,50);
-  OLED.display.println(A);    //この中に知りたい変数を入力
+  OLED.display.println();    //この中に知りたい変数を入力
 
   OLED.startOLED();
 }

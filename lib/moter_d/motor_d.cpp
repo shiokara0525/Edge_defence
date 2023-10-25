@@ -18,13 +18,13 @@ void motor_deffence::moveMotor_l(angle ang,int val,double ac_val,LINE line){  //
   double h = 0;
   double Mval[4] = {0,0,0,0};  //モーターの値×4
   double max_val = val;        //モーターの値の上限値
-  double mval_x = cos(ang.radians);  //進みたいベクトルのx成分
-  double mval_y = sin(ang.radians);  //進みたいベクトルのy成分
+  double mval_x = cos(ang.radians) + line.dis_X * line_val;  //進みたいベクトルのx成分
+  double mval_y = sin(ang.radians) + line.dis_Y * line_val;  //進みたいベクトルのy成分
   
   max_val -= ac_val;  //姿勢制御とその他のモーターの値を別に考えるために姿勢制御の値を引いておく
   
   for(int i = 0; i < 4; i++){
-    Mval[i] = -mSin[i] *(mval_x + line.Lvec_X * line_val)  + mCos[i] *(mval_y + line.Lvec_Y * line_val);
+    Mval[i] = -mSin[i] * mval_x + mCos[i] * mval_y;
     
     if(abs(Mval[i]) > g){  //絶対値が一番高い値だったら
       g = abs(Mval[i]);    //一番大きい値を代入

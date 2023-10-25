@@ -143,8 +143,8 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
 
 
 int LINE::switchLineflag(angle linedir){
+  int line_flag = 0;
   linedir.to_range(-45,false);
-  line_flag = 0;
   for(int i = 0; i < 4; i++){  //角度を四つに区分して、それぞれどの区分にいるか判定するよ
     if(-45 +(i * 90) < linedir.degree && linedir.degree < 45 +(i * 90)){  //それ以外の三つの区分(右、後ろ、左で判定してるよ)
       line_flag = i + 1;
