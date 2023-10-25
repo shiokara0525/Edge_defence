@@ -102,6 +102,10 @@ void loop(){
     else if(s_flag == 2){
       A = 13;
     }
+
+    if(OLED.OutB_flag != 999){
+      A = 12;
+    }
   }
 
 
@@ -128,6 +132,7 @@ void loop(){
       goDir = go_ang.degree;
       OLED_moving();
     }
+    OLED.OutB_flag = 999;
     A = 50;
   }
 
@@ -324,11 +329,11 @@ void OLED_moving(){
   OLED.display.println(cam.on);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,20); //3列目
-  OLED.display.println("C_s");  //この中に変数名を入力
+  OLED.display.println("G_a");  //この中に変数名を入力
   OLED.display.setCursor(30,20);
   OLED.display.println(":");
   OLED.display.setCursor(36,20);
-  OLED.display.println(cam.Size);    //この中に知りたい変数を入力
+  OLED.display.println(goDir);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,30); //4列目
   OLED.display.println("L_x");  //この中に変数名を入力
@@ -345,11 +350,11 @@ void OLED_moving(){
   OLED.display.println(line.dis_Y);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,50); //6列目
-  OLED.display.println("");  //この中に変数名を入力
+  OLED.display.println("O_B");  //この中に変数名を入力
   OLED.display.setCursor(30,50);
   OLED.display.println(":");
   OLED.display.setCursor(36,50);
-  OLED.display.println();    //この中に知りたい変数を入力
+  OLED.display.println(OLED.OutB_flag);    //この中に知りたい変数を入力
 
   OLED.startOLED();
 }
