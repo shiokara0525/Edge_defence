@@ -42,7 +42,7 @@ int A = 0;  //どのチャプターに移動するかを決める変数
 
 
 int stop_range = 5;
-int P_range = 20;
+int P_range = 25;
 
 int cam_LR = 0; //ロボットが右側にいたら0、左側にいたら1
 int flag = 0;
@@ -179,7 +179,7 @@ void loop(){
     go_ang.to_range(180,true);  //進む角度を-180 ~ 180の範囲に収める
 
 
-    if(160 < abs(go_ang.degree)){       //進む角度が真後ろにあるとき
+    if(135 < abs(go_ang.degree)){       //進む角度が真後ろにあるとき
       goval = 0;
     }
     else if(120 < abs(go_ang.degree)){  //進む角度が後ろめな時
@@ -196,7 +196,7 @@ void loop(){
     for(int i = 0; i < 2; i++){
       int dif_val = abs(ball.ang - go_border[i]);
       if(dif_val < stop_range){  //正面方向にボールがあったら停止するよ
-        goval = 0;
+        goval = 0; 
       }
       else if(dif_val < P_range){
         goval = val_max / (P_range - stop_range) * (dif_val - stop_range);
@@ -215,7 +215,7 @@ void loop(){
     }
     A = 10;
   }
-  OLED_moving();
+  OLED.startOLED();
   goDir = go_ang.degree;
   goVal = goval;
 }
@@ -241,7 +241,7 @@ void serialEvent1(){
     else{
       cam.on = 1;
       cam.Size = reBuf[2];
-      cam.ang = reBuf[1] - 30;
+      cam.ang = -(reBuf[1] - 127);
     }
   }
 
@@ -336,11 +336,11 @@ void OLED_moving(){
   OLED.display.println(goDir);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,30); //4列目
-  OLED.display.println("L_x");  //この中に変数名を入力
+  OLED.display.println("g_v");  //この中に変数名を入力
   OLED.display.setCursor(30,30);
   OLED.display.println(":");
   OLED.display.setCursor(36,30);
-  OLED.display.println(line.dis_X);    //この中に知りたい変数を入力
+  OLED.display.println(goVal);    //この中に知りたい変数を入力
 
   OLED.display.setCursor(0,40); //5列目
   OLED.display.println("L_y");  //この中に変数名を入力

@@ -16,8 +16,8 @@ class motor_deffence{
         int line_val = 2;
         int Val[4];
     private:
-        const int pah[4] = {4,2,8,6};
-        const int ena[4] = {5,3,9,7};
+        const int pah[4] = {2,4,6,8};
+        const int ena[4] = {3,5,7,9};
         double mSin[4] = {1,1,-1,-1};  //行列式のsinの値
         double mCos[4] = {1,-1,-1,1};  //行列式のcosの値
         MA Motor[4];
