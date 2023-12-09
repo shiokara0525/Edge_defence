@@ -41,8 +41,11 @@ int A = 0;  //どのチャプターに移動するかを決める変数
 //上二つの変数を上手い感じにこねくり回して最初に踏んだラインの位置を記録するよ(このやり方は部長に教えてもらったよ)
 
 
-int stop_range = 5;
+int stop_range = 10;
 int P_range = 25;
+int stop_flag = 0;
+int s_b = 999;
+timer stop_t;
 
 int cam_LR = 0; //ロボットが右側にいたら0、左側にいたら1
 int flag = 0;
@@ -192,18 +195,57 @@ void loop(){
     else{                              //横に進むとき
       MOTOR.line_val = 0.90;
     }
-    
+    stop_flag = 0;
     for(int i = 0; i < 2; i++){
       int dif_val = abs(ball.ang - go_border[i]);
       if(dif_val < stop_range){  //正面方向にボールがあったら停止するよ
-        goval = 0; 
+        goval = 0;
+        stop_flag = 1;
       }
       else if(dif_val < P_range){
         goval = val_max / (P_range - stop_range) * (dif_val - stop_range);
+        stop_flag = 1;
       }
     }
     A = 50;
+
+    if(stop_flag == 0){
+      if(stop_flag != s_b){
+        s_b = stop_flag;
+      }
+    }
+    else if(stop_flag == 1){
+      if(stop_flag != s_b){
+        s_b = stop_flag;
+        stop_t.reset();
+      }
+      if(5000 < stop_t.read_ms()){
+        A = 30;
+        stop_t.reset();
+      }
+    }
     flag = 20;
+  }
+
+  if(A == 30){
+    goval = 120;
+
+    if(abs(ball.ang) < 25){
+      OutB_flag = 1;
+
+      while(stop_t.read_ms() < 1100){  //0.9秒前進するよ
+        float ac_val = ac.getAC_val();
+        ball.getBallposition();
+
+        go_ang = ball.ang;
+        MOTOR.moveMotor_0(go_ang,goval,ac_val);
+        if(25 < abs(ball.ang)){  //前にボールがなくなったらすぐ戻るよ
+          break;
+        }
+      }
+    }
+    goval = 80;
+    A = 12;
   }
 
   if(A == 50){
