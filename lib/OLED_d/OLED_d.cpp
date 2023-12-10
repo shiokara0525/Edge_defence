@@ -388,13 +388,93 @@ void oled_deffence::OLED(){
           if(Button_select == 0)  //nextが選択されていたら
           {
             ac.setup_2();  //姿勢制御の値リセットするぜい
-            A_OLED = 15;  //スタート画面に行く
+            A_OLED = 12;  //ゴール方向判定画面に行く
           }
           else if(Button_select == 1)  //exitが選択されていたら
           {
             A_OLED = 0;  //メニュー画面に戻る
           }
           aa = 0;
+        }
+      }
+    }
+    else if(A_OLED == 12)  //ゴール方向判定するよ
+    {
+      if(A_OLED != B_OLED){  //ステートが変わったときのみ実行(初期化)
+        Button_select = 0;  //ボタンの選択(setDir)をデフォルトにする
+        B_OLED = A_OLED;
+      };
+
+      display.display();
+      display.clearDisplay();
+
+      display.setTextSize(1);
+
+      display.setTextColor(WHITE);
+      if(Button_selectCF == 0)  //exitが選択されていたら
+      {
+        if(flash_OLED == 0){  //白黒反転　何秒かの周期で白黒が変化するようにタイマーを使っている（flash_OLEDについて調べたらわかる）
+          display.setTextColor(BLACK, WHITE);
+        }
+        else{
+          display.setTextColor(WHITE);
+        }
+      }
+      display.setCursor(0,30);
+      display.println("Yellow");
+
+      display.setTextColor(WHITE);
+      if(Button_selectCF == 1)  //exitが選択されていたら
+      {
+        if(flash_OLED == 0){  //白黒反転　何秒かの周期で白黒が変化するようにタイマーを使っている（flash_OLEDについて調べたらわかる）
+          display.setTextColor(BLACK, WHITE);
+        }
+        else{
+          display.setTextColor(WHITE);
+        }
+      }
+      display.setCursor(50,55);
+      display.println("Exit");
+
+      display.setTextColor(WHITE);
+      if(Button_selectCF == 2)  //exitが選択されていたら
+      {
+        if(flash_OLED == 0){  //白黒反転　何秒かの周期で白黒が変化するようにタイマーを使っている（flash_OLEDについて調べたらわかる）
+          display.setTextColor(BLACK, WHITE);
+        }
+        else{
+          display.setTextColor(WHITE);
+        }
+      }
+      display.setCursor(90,30);
+      display.println("Blue");
+
+      //タクトスイッチが押されたら(手を離されるまで次のステートに行かせたくないため、変数aaを使っている)
+      if(aa == 0){
+        if(digitalRead(Tact_Switch) == LOW){  //タクトスイッチが押されたら
+          aa = 1;
+        }
+      }else{
+        if(digitalRead(Tact_Switch) == HIGH){  //タクトスイッチが手から離れたら
+          if(Button_selectCF == 0)  //yellowが選択されていたら
+          {
+            cam.color = 1;
+            Serial1.write("1");
+            A_OLED = 15;  //スタート画面に行く
+          }
+          else if(Button_selectCF == 2)  //blueが選択されていたら
+          {
+            cam.color = 2;
+            Serial1.write("0");
+            A_OLED = 15;  //スタート画面に行く
+          }
+          else if(Button_selectCF == 1)  //exitが選択されていたら
+          {
+            A_OLED = 0;  //メニュー画面に戻る
+          }
+          address = 0x00;  //EEPROMのアドレスを0x00にする（リセット）
+          address = sizeof(line.LINE_Level) + sizeof(RA_size) + sizeof(val_max);  //アドレスを次の変数のアドレスにする
+          EEPROM.put(address, Button_selectCF);  //EEPROMにボールの閾値を保存
         }
       }
     }
@@ -886,6 +966,21 @@ void oled_deffence::OLED(){
           else if(new_encVal < old_encVal)
           {
             Button_select = 1;  //exit
+          }
+        }
+        else if(A_OLED == 12)
+        {
+          if(new_encVal > old_encVal)  //回転方向を判定
+          {
+            if(Button_selectCF < 2){
+              Button_selectCF++;  //next
+            }
+          }
+          else if(new_encVal < old_encVal)
+          {
+            if(Button_selectCF  > 0){
+              Button_selectCF--;  //next
+            }
           }
         }
         else if(A_OLED == 15)

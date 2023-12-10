@@ -10,11 +10,13 @@
 #include<ball.h>
 #include<ac.h>
 #include<motor_d.h>
+#include<Cam.h>
 
 extern AC ac;
 extern BALL ball;
 extern LINE line;
 extern motor_deffence MOTOR;
+extern Cam cam;
 
 /*------------------------------------------------------------------------------------------------------------*/
 
