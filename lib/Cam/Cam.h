@@ -7,14 +7,15 @@ class Cam{
     private:
         int B = 999;
         int A = 0;
+        int F = 0;
     public:
         Cam();
+        void begin();
         float ang;
-        int LR = 0;
         float Size;
         void print();
-        float P = 0;
         int on = 0;
         int color = 0;
+        int LR = 0;
         MA csize;
 };

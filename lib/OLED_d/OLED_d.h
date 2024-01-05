@@ -16,7 +16,7 @@ extern AC ac;
 extern BALL ball;
 extern LINE line;
 extern motor_deffence MOTOR;
-extern Cam cam;
+extern Cam cam_back;
 
 /*------------------------------------------------------------------------------------------------------------*/
 
@@ -44,6 +44,7 @@ class oled_deffence{
     int toogle = 0;  //トグルスイッチの値を記録（トグルを引くときに使う）
     int goDir;  //loop関数ないしか使えないangle go_ang.degressの値をぶち込んでグローバルに使うために作った税
     oled_deffence();
+    void setup();
     void OLED();
     void startOLED();
     int Button_selectCF = 0;  //コートの方向を決めるときに特殊なことをするので、セレクト変数を変えときますぜよ

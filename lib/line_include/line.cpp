@@ -11,7 +11,7 @@ void LINE::setup() {
 
   for (int i=0; i<24; i++) //ラインの座標を配列に入れる・ラインセンサ
   {
-    Lrad = PI / 12 * i; //ラインセンサのラジアンを計算
+    Lrad = PI_E / 12 * i; //ラインセンサのラジアンを計算
     ele_X[i] = cos(Lrad); //ラインセンサのX座標を求める
     ele_Y[i] = sin(Lrad); //ラインセンサのY座標を求める
     Lsencer_Dir[i] = 15.0 * i; //ラインセンサの角度を求める
@@ -66,28 +66,31 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
     }
   }
 
-  for(int i=0; i<24; i++){
+  for(int i=0; i<24; i++) //24個のラインセンサを指定する
+  {
     data_ave[i] = data[i] / LniseF;
+    
+    // Serial.print(data_sum[i]);
+    // Serial.print(" ");
+    // Serial.print(Lnone);
+
     if(LINE_Level < data_ave[i]){
       data_on[i] = 1;
     }
     else{
       data_on[i] = 0;
     }
-    // Serial.print(data_on[i]);
-    // Serial.print(" ");
+    Serial.print(data_on[i]);
+    Serial.print(" ");
   }
-  // Serial.println();
+  Serial.println();
 
-  for(int i = 0; i < 10; i++){
-    // Serial.print(i);
-    // Serial.print(" : ");
-    // Serial.print(data_ave[i]);
-    // Serial.print(" ");    
-  }
 
 
   for(int i = 0; i < 24; i++){
+    if(i == 11 || i == 12){
+      continue;
+    }
     if(flag == 0){
       if(data_on[i] == 1){
         block_num++;
@@ -135,16 +138,16 @@ int LINE::getLINE_Vec() { //ラインのベクトル(距離,角度)を取得す�
     LINE_on = 0;
   }
   else{
-    ang_old = ang;
     LINE_on = 1;
+    ang_old = ang;
   }
   return LINE_on;
 }
 
 
 int LINE::switchLineflag(angle linedir){
-  int line_flag = 0;
   linedir.to_range(-45,false);
+  line_flag = 0;
   for(int i = 0; i < 4; i++){  //角度を四つに区分して、それぞれどの区分にいるか判定するよ
     if(-45 +(i * 90) < linedir.degree && linedir.degree < 45 +(i * 90)){  //それ以外の三つの区分(右、後ろ、左で判定してるよ)
       line_flag = i + 1;
@@ -207,10 +210,10 @@ void LINE::print(){
   Serial.print(num);
   Serial.print(" 角度 : ");
   Serial.print(ang); //ラインのベクトルを表示
-  Serial.print(" 距離 : ");
-  Serial.print(dis); //ラインのベクトルを表示
-  Serial.print("  X : ");
-  Serial.print(dis_X); //ラインのベクトルを表示
-  Serial.print("  Y : ");
-  Serial.print(dis_Y); //ラインのベクトルを表示
+  // Serial.print(" 距離 : ");
+  // Serial.print(dis); //ラインのベクトルを表示
+  // Serial.print("  X : ");
+  // Serial.print(dis_X); //ラインのベクトルを表示
+  // Serial.print("  Y : ");
+  // Serial.print(dis_Y); //ラインのベクトルを表示
 }

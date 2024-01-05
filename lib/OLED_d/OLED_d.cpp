@@ -4,6 +4,11 @@
 
 
 oled_deffence::oled_deffence(){
+}
+
+
+
+void oled_deffence::setup(){
   EEPROM.get(address,line.LINE_Level);//EEPROMから読み出し
   address += sizeof(line.LINE_Level);  //アドレスを次の変数のアドレスにする
   EEPROM.get(address,RA_size);//EEPROMから読み出し(前回取り出した変数からアドレスを取得し、次のアドレスをここで入力する)
@@ -458,14 +463,12 @@ void oled_deffence::OLED(){
         if(digitalRead(Tact_Switch) == HIGH){  //タクトスイッチが手から離れたら
           if(Button_selectCF == 0)  //yellowが選択されていたら
           {
-            cam.color = 1;
-            Serial1.write("1");
+            cam_back.color = 1;
             A_OLED = 15;  //スタート画面に行く
           }
           else if(Button_selectCF == 2)  //blueが選択されていたら
           {
-            cam.color = 2;
-            Serial1.write("0");
+            cam_back.color = 0;
             A_OLED = 15;  //スタート画面に行く
           }
           else if(Button_selectCF == 1)  //exitが選択されていたら
@@ -666,20 +669,20 @@ void oled_deffence::OLED(){
       display.drawCircle(32, 32, 20, WHITE);  //○ 20
 
       //ラインの直線と円の交点の座標を求める
-      line_x = line.dis * cos(line.Lrad);  //ラインのx座標
-      line_y = line.dis * sin(line.Lrad);  //ラインのy座標
+      line_x = line.dis * cos(line.ang);  //ラインのx座標
+      line_y = line.dis * sin(line.ang);  //ラインのy座標
 
-      b = line_y - tan(line.Lrad) * line_x;  //y = tanΘx + b の解の公式のb
+      b = line_y - tan(line.ang) * line_x;  //y = tanΘx + b の解の公式のb
 
-      La = 1 + pow(tan(line.Lrad), 2);    //解の公式のa
-      Lb = tan(line.Lrad) * b;            //解の公式のb
+      La = 1 + pow(tan(line.ang), 2);    //解の公式のa
+      Lb = tan(line.ang) * b;            //解の公式のb
       Lc = pow(b, 2) - 900;               //解の公式のc
 
       Ax = (-Lb + sqrt(pow(Lb, 2) - 4 * La * Lc)) / (2 * La);  //A点のx座標
-      Ay = tan(line.Lrad) * Ax + b;                            //A点のy座標
+      Ay = tan(line.ang) * Ax + b;                            //A点のy座標
 
       Bx = (-Lb - sqrt(pow(Lb, 2) - 4 * La * Lc)) / (2 * La);  //B点のx座標
-      By = tan(line.Lrad) * Bx + b;                            //B点のy座標
+      By = tan(line.ang) * Bx + b;                            //B点のy座標
 
       //ラインの線の座標をOLEDでの座標に変換(-1~1の値を0~60の値に変換)
       OLED_line_ax = map(Ax, -1.5, 1.5, 0, 60);  //ラインの線のA点のx座標
