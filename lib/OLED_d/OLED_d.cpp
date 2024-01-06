@@ -28,11 +28,9 @@ void oled_deffence::setup(){
 
 
 void oled_deffence::startOLED(){
-  if(digitalRead(Tact_Switch) == LOW){
-    MOTOR.motor_0();
-    toogle = digitalRead(Toggle_Switch);
-    OLED();
-  }
+  MOTOR.motor_0();
+  toogle = digitalRead(Toggle_Switch);
+  OLED();
 }
 
 

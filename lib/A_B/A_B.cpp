@@ -9,6 +9,12 @@ int A_B::setA(int A_){
         T.reset();
     }
 
+    if(A == 2){
+        Serial.print(B);
+        Serial.print(" ");
+        Serial.print(T.read_ms());
+    }
+
     if(max <= T.read_ms()){
         return A_;
     }

@@ -12,6 +12,6 @@ class A_B{
     int setA(int);
     int A;
     int B;
-    int max;
+    unsigned long max = 0;
     timer T;
 };
